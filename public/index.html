@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura Network | Подключение</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+
+    <style>
+        :root {
+            color-scheme: dark;
+            --ink-900: #0d1117;
+            --ink-850: #11161d;
+            --ink-800: #161b22;
+            --ink-700: #1d242d;
+            --ink-600: #2b333d;
+            --signal: #5a8a94;
+            --signal-dim: #487079;
+            --paper: #e6edf3;
+            --paper-dim: #9aa7b4;
+            --paper-mute: #7a8694;
+            --danger: #ff6b6b;
+            --success: #4ad08a;
+            --bg: var(--ink-900);
+            --surface: var(--ink-800);
+            --surface-2: var(--ink-700);
+            --line: color-mix(in oklab, var(--paper) 10%, transparent);
+            --line-strong: color-mix(in oklab, var(--signal) 35%, transparent);
+            --text: var(--paper);
+            --text-2: var(--paper-dim);
+            --text-3: var(--paper-mute);
+            --accent: var(--signal);
+            --accent-ink: #06181c;
+            --font-body: 'Manrope', system-ui, sans-serif;
+            --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+            --r-sm: 0.5rem;
+            --r-md: 0.875rem;
+            --r-lg: 1.25rem;
+            --shadow-card: 0 1px 0 color-mix(in oklab, var(--paper) 6%, transparent) inset, 0 20px 40px -24px rgba(0, 0, 0, 0.8);
+            --glow: 0 0 0 1px color-mix(in oklab, var(--signal) 40%, transparent), 0 0 28px -6px color-mix(in oklab, var(--signal) 55%, transparent);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100dvh;
+            font-family: var(--font-body);
+            color: var(--text);
+            background-color: var(--bg);
+            -webkit-font-smoothing: antialiased;
+            background-image: radial-gradient(120% 80% at 85% -10%, color-mix(in oklab, var(--signal) 12%, transparent), transparent 60%), radial-gradient(90% 60% at 0% 0%, color-mix(in oklab, #2bd6c0 7%, transparent), transparent 55%), linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 64px 64px, 64px 64px;
+            background-attachment: fixed;
+        }
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+        body > * { position: relative; z-index: 1; }
+        h1, h2, h3 { text-wrap: balance; margin: 0; }
+        p { margin: 0; }
+        :where(a, button, summary, select, [tabindex]):focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 3px;
+            border-radius: 4px;
+        }
+        .visually-hidden:where(:not(:focus-within, :active)) {
+            position: absolute !important;
+            clip-path: inset(50%) !important;
+            overflow: hidden !important;
+            width: 1px !important; height: 1px !important;
+            margin: -1px !important; padding: 0 !important; border: 0 !important;
+            white-space: nowrap !important;
+        }
+        .skip-link:focus {
+            position: fixed;
+            inset-block-start: 0.75rem;
+            inset-inline-start: 0.75rem;
+            z-index: 1100;
+            padding: 0.5rem 0.85rem;
+            background: var(--accent);
+            color: var(--accent-ink);
+            border-radius: var(--r-sm);
+            font-weight: 700;
+        }
+        .shell { width: min(680px, 100% - 2.5rem); margin-inline: auto; }
+        .site-header {
+            padding-block: 1.5rem 0.5rem;
+        }
+        .site-header__row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 1.05rem;
+            letter-spacing: -0.02em;
+            color: var(--text);
+        }
+        .brand__dot {
+            width: 0.6rem; height: 0.6rem;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 12px var(--accent);
+            animation: pulse 2.4s ease-in-out infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+        .header-actions { display: flex; align-items: center; gap: 0.5rem; }
+        .icon-btn {
+            inline-size: 2.75rem; block-size: 2.75rem;
+            display: inline-flex; align-items: center; justify-content: center;
+            border-radius: var(--r-sm);
+            background: var(--surface);
+            border: 1px solid var(--line);
+            color: var(--text-2);
+            cursor: pointer;
+            transition: color .2s, border-color .2s, background .2s, transform .1s;
+            text-decoration: none;
+        }
+        .icon-btn:hover { color: var(--accent); border-color: var(--line-strong); background: var(--surface-2); }
+        .icon-btn:active { transform: scale(.94); }
+        .card {
+            background: linear-gradient(180deg, color-mix(in oklab, var(--paper) 3%, transparent), transparent 30%), var(--surface);
+            border: 1px solid var(--line);
+            border-radius: var(--r-lg);
+            box-shadow: var(--shadow-card);
+        }
+        .hero { padding: 1.5rem; overflow: clip; }
+        .hero__top { display: flex; align-items: center; gap: 1rem; }
+        .status-badge {
+            inline-size: 3rem; block-size: 3rem;
+            flex-shrink: 0;
+            display: grid; place-items: center;
+            border-radius: var(--r-md);
+            color: var(--accent-ink);
+            background: var(--accent);
+            box-shadow: var(--glow);
+        }
+        .status-badge--off { background: var(--surface-2); color: var(--text-3); box-shadow: none; border: 1px solid var(--line); }
+        .hero__id {
+            font-family: var(--font-mono);
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            color: var(--text);
+            overflow-wrap: anywhere;
+        }
+        .hero__expires {
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            color: var(--text-3);
+            margin-top: 0.15rem;
+        }
+        .hero__expires b { color: var(--accent); font-weight: 500; }
+        .hero__timer {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            font-weight: 400;
+            color: var(--accent);
+            margin-top: 0.1rem;
+            display: none;
+        }
+        .hero__timer.visible { display: block; }
+        .details-toggle {
+            margin-inline-start: auto;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-2);
+            background: var(--surface-2);
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 0.4rem 0.8rem;
+            cursor: pointer;
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            list-style: none;
+        }
+        #user-status-toggle::-webkit-details-marker { display: none; }
+        #user-status-toggle::marker { content: ""; }
+        .details-toggle svg { transition: transform .25s ease; }
+        #user-status[open] .details-toggle svg { transform: rotate(180deg); }
+        .stat-grid {
+            margin-top: 1.25rem;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+        .stat {
+            border: 1px solid var(--line);
+            border-radius: var(--r-md);
+            background: color-mix(in oklab, var(--ink-850) 70%, transparent);
+            padding: 0.85rem;
+        }
+        .stat__label {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-3);
+        }
+        .stat__value {
+            margin-top: 0.4rem;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text);
+            overflow-wrap: anywhere;
+        }
+        .stat__value--accent { color: var(--accent); }
+        .install { padding: 1.5rem; margin-top: 1.25rem; }
+        .install__head {
+            display: flex; flex-wrap: wrap;
+            align-items: center; justify-content: space-between;
+            gap: 1rem;
+        }
+        .section-title {
+            font-family: var(--font-mono);
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--text);
+            display: flex; align-items: center; gap: 0.55rem;
+        }
+        .section-title::before {
+            content: "//";
+            color: var(--accent);
+            font-weight: 700;
+        }
+        .platform-select-wrap { position: relative; inline-size: 9.5rem; }
+        .platform-select-wrap > .pf-icon {
+            position: absolute; inset-block-start: 50%; inset-inline-start: 0.7rem;
+            translate: 0 -50%;
+            inline-size: 1rem; block-size: 1rem;
+            color: var(--accent);
+            pointer-events: none;
+            display: inline-flex;
+        }
+        .platform-select-wrap > .pf-icon :where(svg) { width: 100%; height: 100%; }
+        .platform-select {
+            inline-size: 100%;
+            block-size: 2.6rem;
+            appearance: none;
+            padding-inline: 2.2rem 2rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text);
+            background: var(--surface-2);
+            border: 1px solid var(--line);
+            border-radius: var(--r-sm);
+            cursor: pointer;
+            transition: border-color .2s;
+        }
+        .platform-select:hover { border-color: var(--line-strong); }
+        .platform-select-wrap > .pf-caret {
+            position: absolute; inset-block-start: 50%; inset-inline-end: 0.7rem;
+            translate: 0 -50%;
+            color: var(--text-3); pointer-events: none;
+        }
+        .app-tabs { margin-top: 1.25rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .app-tab {
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            padding: 0.45rem 0.85rem;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: transparent;
+            color: var(--text-2);
+            cursor: pointer;
+            transition: all .2s;
+        }
+        .app-tab:hover { color: var(--text); border-color: var(--line-strong); }
+        .app-tab[aria-pressed="true"] {
+            color: var(--accent-ink);
+            background: var(--accent);
+            border-color: var(--accent);
+            font-weight: 700;
+        }
+        .timeline {
+            --step-dot: 2.6rem;
+            --step-axis: calc(var(--step-dot) / 2);
+            --step-gap: 1.75rem;
+            position: relative; margin-top: 1.5rem;
+            display: flex; flex-direction: column; gap: var(--step-gap);
+        }
+        #timeline-vertical-line { display: none; }
+        .step { position: relative; display: flex; gap: 1rem; }
+        .step:not(:last-child)::before {
+            content: "";
+            position: absolute;
+            inset-inline-start: var(--step-axis);
+            translate: -50% 0;
+            inset-block-start: var(--step-axis);
+            block-size: calc(100% - var(--step-axis) + var(--step-gap) + var(--step-axis));
+            inline-size: 2px;
+            background: var(--line);
+            border-radius: 2px;
+            pointer-events: none;
+        }
+        .step__num {
+            position: relative; z-index: 1;
+            inline-size: var(--step-dot); block-size: var(--step-dot);
+            flex-shrink: 0;
+            display: grid; place-items: center;
+            border-radius: 50%;
+            background: var(--ink-850);
+            border: 1px solid var(--line);
+            color: var(--accent);
+        }
+        .step__num :where(svg) { width: 18px; height: 18px; }
+        .step__body { padding-block-start: 0.2rem; }
+        .step__title { font-size: 1rem; font-weight: 700; color: var(--text); }
+        .step__desc { margin-top: 0.4rem; font-size: 0.88rem; line-height: 1.55; color: var(--text-2); overflow-wrap: break-word; }
+        .step__actions { margin-top: 0.85rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+            min-block-size: 2.75rem;
+            font-family: var(--font-body);
+            font-size: 0.85rem; font-weight: 700;
+            padding: 0.6rem 1rem;
+            border-radius: var(--r-sm);
+            cursor: pointer;
+            text-decoration: none;
+            border: 1px solid transparent;
+            transition: filter .2s, transform .1s, background .2s, border-color .2s, color .2s;
+        }
+        .btn :where(svg) { width: 16px; height: 16px; }
+        .btn:active { transform: translateY(1px); }
+        .btn--primary {
+            background: var(--accent); color: var(--accent-ink);
+            box-shadow: var(--glow);
+        }
+        .btn--primary:hover { filter: brightness(1.08); }
+        .btn--ghost {
+            background: var(--surface-2);
+            border-color: var(--line);
+            color: var(--text);
+        }
+        .btn--ghost:hover { border-color: var(--line-strong); color: var(--accent); }
+        #share-btn-header { anchor-name: --share-anchor; }
+        #share-dropdown {
+            margin: 0;
+            min-inline-size: 11rem;
+            padding: 0.4rem;
+            background: var(--surface);
+            border: 1px solid var(--line-strong);
+            border-radius: var(--r-md);
+            box-shadow: var(--shadow-card), var(--glow);
+        }
+        #share-dropdown:where(:popover-open, .\:popover-open) {
+            position-anchor: --share-anchor;
+            position-area: block-end span-inline-start;
+            inset: auto;
+            margin-block-start: 0.5rem;
+            position-try-fallbacks: flip-block, flip-inline;
+        }
+        .menu-item {
+            inline-size: 100%;
+            display: flex; align-items: center; gap: 0.7rem;
+            padding: 0.6rem 0.7rem;
+            border-radius: var(--r-sm);
+            background: transparent; border: 0;
+            font-family: var(--font-body); font-size: 0.85rem; font-weight: 600;
+            color: var(--text-2);
+            cursor: pointer;
+            transition: background .15s, color .15s;
+        }
+        .menu-item:hover { background: var(--surface-2); color: var(--accent); }
+        .menu-item :where(svg) { width: 18px; height: 18px; }
+        #qr-modal {
+            position: fixed; margin: auto; inset: 0;
+            inline-size: fit-content; max-inline-size: 90vw;
+            padding: 1.25rem;
+            color: var(--text);
+            background: var(--surface);
+            border: 1px solid var(--line-strong);
+            border-radius: var(--r-lg);
+            box-shadow: var(--shadow-card), var(--glow);
+        }
+        #qr-modal::backdrop {
+            background: rgba(5, 6, 5, 0.7);
+            backdrop-filter: blur(6px);
+        }
+        #qr-close { position: absolute; inset-block-start: 0.6rem; inset-inline-end: 0.6rem; inline-size: 1.9rem; block-size: 1.9rem; }
+        .qr-title { font-family: var(--font-mono); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.85rem; }
+        #qr-code { background: #fff; border-radius: var(--r-sm); padding: 0.6rem; inline-size: fit-content; margin-inline: auto; }
+        .qr-hint { margin-top: 0.85rem; font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-3); text-align: center; }
+        .toast {
+            position: fixed; inset-block-end: 1.75rem; inset-inline-start: 50%;
+            translate: -50% 60px;
+            opacity: 0;
+            z-index: 1000;
+            display: flex; align-items: center; gap: 0.7rem;
+            padding: 0.8rem 1.1rem;
+            font-family: var(--font-mono); font-size: 0.8rem; font-weight: 500;
+            color: var(--accent-ink);
+            background: var(--accent);
+            border-radius: 999px;
+            box-shadow: var(--glow);
+            transition: translate .35s cubic-bezier(.2,.9,.3,1), opacity .35s;
+        }
+        .toast.show { translate: -50% 0; opacity: 1; }
+        .toast :where(svg) { width: 18px; height: 18px; }
+        * { scrollbar-color: var(--ink-600) transparent; scrollbar-width: thin; }
+        @keyframes rise {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .reveal { animation: rise .6s cubic-bezier(.2,.8,.2,1) both; }
+        .reveal:nth-of-type(1) { animation-delay: .05s; }
+        .reveal:nth-of-type(2) { animation-delay: .15s; }
+        @media (prefers-reduced-motion: reduce) {
+            *, ::before, ::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            .brand__dot { animation: none; }
+        }
+        @media (max-width: 480px) {
+            .shell { width: 100% - 1rem; padding-block: 1rem; }
+            .card { padding: 1rem; }
+            .stat-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <a href="#content" class="skip-link visually-hidden">Перейти к содержимому</a>
+
+    <header class="site-header shell">
+        <div class="site-header__row">
+            <h1 class="brand">
+                <span class="brand__dot" aria-hidden="true"></span>
+                aura net
+            </h1>
+            <div class="header-actions">
+                <div style="position: relative;">
+                    <button
+                        id="share-btn-header"
+                        class="icon-btn"
+                        type="button"
+                        popovertarget="share-dropdown"
+                        aria-haspopup="menu"
+                        aria-label="Поделиться"
+                    >
+                        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path>
+                            <path d="M18 6m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path>
+                            <path d="M18 18m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path>
+                            <path d="M8.7 10.7l6.6 -3.4"></path>
+                            <path d="M8.7 13.3l6.6 3.4"></path>
+                        </svg>
+                    </button>
+                    <div id="share-dropdown" popover="auto" role="menu" aria-label="Поделиться подпиской">
+                        <button id="copy-link-action" role="menuitem" class="menu-item" type="button">
+                            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M9 15l6 -6"></path>
+                                <path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464"></path>
+                                <path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463"></path>
+                            </svg>
+                            Копировать
+                        </button>
+                        <button id="show-qr-action" role="menuitem" class="menu-item" type="button">
+                            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 4m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"></path>
+                                <path d="M7 17l0 .01"></path>
+                                <path d="M14 4m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"></path>
+                                <path d="M7 7l0 .01"></path>
+                                <path d="M4 14m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"></path>
+                                <path d="M17 7l0 .01"></path>
+                                <path d="M14 14l3 0"></path>
+                                <path d="M20 14l0 .01"></path>
+                                <path d="M14 14l0 3"></path>
+                                <path d="M14 20l3 0"></path>
+                                <path d="M17 17l3 0"></path>
+                                <path d="M20 17l0 3"></path>
+                            </svg>
+                            QR-код
+                        </button>
+                    </div>
+                </div>
+                <a class="icon-btn" href="https://t.me/auranetvpnbot" target="_blank" rel="noopener noreferrer" aria-label="Поддержка">
+                    <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M15 10l-4 4l6 6l4 -16l-18 7l4 2l2 6l3 -4"></path>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main id="content" tabindex="-1" class="shell" style="padding-block: 1.5rem 3rem;">
+        <details id="user-status" class="card hero reveal">
+            <summary id="user-status-toggle" class="hero__top" style="cursor: pointer; list-style: none;">
+                <div style="min-width: 0; flex: 1;">
+                    <p class="hero__id" id="userName">Загрузка...</p>
+                    <div class="hero__expires" id="userExpires"></div>
+                    <div class="hero__timer" id="userTimer"></div>
+                </div>
+                <span class="details-toggle" style="margin-inline-start: auto;">
+                    детали
+                    <svg aria-hidden="true" id="user-status-chevron" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m6 9 6 6 6-6"/>
+                    </svg>
+                </span>
+            </summary>
+            <div id="user-status-content" class="stat-grid">
+                <div class="stat">
+                    <p class="stat__label">Пользователь</p>
+                    <p class="stat__value" id="userLogin">@loading</p>
+                </div>
+                <div class="stat">
+                    <p class="stat__label">Статус</p>
+                    <p class="stat__value" id="statusText">Загрузка...</p>
+                </div>
+                <div class="stat">
+                    <p class="stat__label">Истекает</p>
+                    <p class="stat__value" id="expiresDate">--</p>
+                </div>
+                <div class="stat">
+                    <p class="stat__label">Трафик</p>
+                    <p class="stat__value stat__value--accent">∞</p>
+                </div>
+            </div>
+        </details>
+
+        <section class="card install reveal">
+            <div class="install__head">
+                <h2 class="section-title">Установка</h2>
+                <div class="platform-select-wrap">
+                    <span class="pf-icon" id="platform-icon" aria-hidden="true"></span>
+                    <label for="platform-select" class="visually-hidden">Платформа</label>
+                    <select id="platform-select" class="platform-select">
+                        <option value="ios">iOS</option>
+                        <option value="linux">Linux</option>
+                        <option value="macos">macOS</option>
+                        <option value="android" selected>Android</option>
+                        <option value="appletv">Apple TV</option>
+                        <option value="windows">Windows</option>
+                        <option value="androidtv">Android TV</option>
+                    </select>
+                    <span class="pf-caret" aria-hidden="true">
+                        <svg width="16" height="16" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4.93179 5.43179C4.75605 5.60753 4.75605 5.89245 4.93179 6.06819C5.10753 6.24392 5.39245 6.24392 5.56819 6.06819L7.49999 4.13638L9.43179 6.06819C9.60753 6.24392 9.89245 6.24392 10.0682 6.06819C10.2439 5.89245 10.2439 5.60753 10.0682 5.43179L7.81819 3.18179C7.73379 3.0974 7.61933 3.04999 7.49999 3.04999C7.38064 3.04999 7.26618 3.0974 7.18179 3.18179L4.93179 5.43179ZM10.0682 9.56819C10.2439 9.39245 10.2439 9.10753 10.0682 8.93179C9.89245 8.75606 9.60753 8.75606 9.43179 8.93179L7.49999 10.8636L5.56819 8.93179C5.39245 8.75606 5.10753 8.75606 4.93179 8.93179C4.75605 9.10753 4.75605 9.39245 4.93179 9.56819L7.18179 11.8182C7.35753 11.9939 7.64245 11.9939 7.81819 11.8182L10.0682 9.56819Z" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" />
+                        </svg>
+                    </span>
+                </div>
+            </div>
+            <div id="app-buttons" class="app-tabs"></div>
+            <div id="timeline-content" class="timeline">
+                <div id="timeline-vertical-line"></div>
+            </div>
+        </section>
+
+        <div id="toast" class="toast" role="status" aria-live="polite">
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 6 9 17l-5-5"/>
+            </svg>
+            <span id="toast-text"></span>
+        </div>
+    </main>
+
+    <dialog id="qr-modal" closedby="any" aria-labelledby="qr-modal-title">
+        <button id="qr-close" class="icon-btn" type="button" aria-label="Закрыть">
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 6 6 18"></path>
+                <path d="m6 6 12 12"></path>
+            </svg>
+        </button>
+        <h2 id="qr-modal-title" class="qr-title">QR-код подписки</h2>
+        <div id="qr-code"></div>
+        <p class="qr-hint">отсканируйте для импорта</p>
+    </dialog>
+
+    <script>
+        // ===== ПОЛУЧАЕМ ЧИСТУЮ ССЫЛКУ =====
+        const pathParts = window.location.pathname.split('/');
+        const token = pathParts[pathParts.length - 1];
+        const cleanUrl = window.location.origin + window.location.pathname;
+        const fullUrl = window.location.href;
+        const apiUrl = `/api/token/${token}`;
+
+        console.log('Чистая ссылка:', cleanUrl);
+        console.log('Токен:', token);
+        console.log('API URL:', apiUrl);
+
+        // ===== ЭЛЕМЕНТЫ ДЛЯ ОБНОВЛЕНИЯ =====
+        const userNameEl = document.getElementById('userName');
+        const userLoginEl = document.getElementById('userLogin');
+        const statusTextEl = document.getElementById('statusText');
+        const expiresDateEl = document.getElementById('expiresDate');
+        const statusBadgeEl = document.querySelector('.status-badge');
+        const userTimerEl = document.getElementById('userTimer');
+        let timerInterval = null;
+
+        // ===== ФУНКЦИЯ ДЛЯ ФОРМАТИРОВАНИЯ ВРЕМЕНИ =====
+        function formatTime(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = Math.floor(seconds % 60);
+            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        // ===== ОБНОВЛЕНИЕ UI =====
+        function updateUserData(data) {
+            console.log('Данные получены:', data);
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            if (userNameEl) userNameEl.innerText = data.user_id;
+            const displayName = data.username || data.first_name.toLowerCase();
+            if (userLoginEl) userLoginEl.innerHTML = `@${displayName}`;
+            
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            
+            if (data.status === 'active') {
+                if (statusTextEl) statusTextEl.innerHTML = 'Активна';
+                if (data.expires_at) {
+                    const date = new Date(data.expires_at);
+                    const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+                        'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+                    const formatted = `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}г.`;
+                    if (expiresDateEl) expiresDateEl.innerHTML = formatted;
+                    
+                    const now = new Date();
+                    const expires = new Date(data.expires_at);
+                    const diffSeconds = Math.floor((expires - now) / 1000);
+                    
+                    if (diffSeconds > 0 && diffSeconds < 86400) {
+                        userTimerEl.classList.add('visible');
+                        userTimerEl.textContent = `Подписка истекает через: ${formatTime(diffSeconds)}`;
+                        
+                        timerInterval = setInterval(() => {
+                            const now2 = new Date();
+                            const expires2 = new Date(data.expires_at);
+                            const diff = Math.floor((expires2 - now2) / 1000);
+                            
+                            if (diff <= 0) {
+                                clearInterval(timerInterval);
+                                timerInterval = null;
+                                userTimerEl.classList.remove('visible');
+                                if (statusTextEl) statusTextEl.innerHTML = 'Неактивна';
+                                if (expiresDateEl) expiresDateEl.innerHTML = '—';
+                            } else if (diff < 86400) {
+                                userTimerEl.textContent = `Подписка истекает через: ${formatTime(diff)}`;
+                            } else {
+                                clearInterval(timerInterval);
+                                timerInterval = null;
+                                userTimerEl.classList.remove('visible');
+                            }
+                        }, 1000);
+                    } else {
+                        userTimerEl.classList.remove('visible');
+                    }
+                }
+                if (statusBadgeEl) {
+                    statusBadgeEl.classList.remove('status-badge--off');
+                    statusBadgeEl.style.background = 'var(--accent)';
+                    statusBadgeEl.style.color = 'var(--accent-ink)';
+                    statusBadgeEl.style.boxShadow = 'var(--glow)';
+                }
+            } else {
+                if (statusTextEl) statusTextEl.innerHTML = 'Неактивна';
+                if (expiresDateEl) expiresDateEl.innerHTML = '—';
+                if (statusBadgeEl) {
+                    statusBadgeEl.classList.add('status-badge--off');
+                    statusBadgeEl.style.background = 'var(--surface-2)';
+                    statusBadgeEl.style.color = 'var(--text-3)';
+                    statusBadgeEl.style.boxShadow = 'none';
+                    statusBadgeEl.style.border = '1px solid var(--line)';
+                }
+                userTimerEl.classList.remove('visible');
+            }
+        }
+
+        function showError(message) {
+            console.error('Ошибка:', message);
+            if (userNameEl) userNameEl.innerText = 'Ошибка загрузки';
+            if (userLoginEl) userLoginEl.innerHTML = '@ошибка';
+            if (statusTextEl) statusTextEl.innerHTML = '❌ ' + message;
+            if (expiresDateEl) expiresDateEl.innerHTML = '--';
+            if (userTimerEl) userTimerEl.classList.remove('visible');
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        // ===== ЗАПРОС К API =====
+        fetch(apiUrl)
+            .then(res => {
+                console.log('Статус ответа:', res.status);
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+                }
+                return res.json();
+            })
+            .then(data => updateUserData(data))
+            .catch(err => {
+                showError(err.message || 'Неизвестная ошибка');
+            });
+
+        // ===== ПЛАТФОРМЫ =====
+        const platformsData = {"ios": {"platform_name": "iOS", "platform_icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M8.286 7.008c-3.216 0 -4.286 3.23 -4.286 5.92c0 3.229 2.143 8.072 4.286 8.072c1.165 -.05 1.799 -.538 3.214 -.538c1.406 0 1.607 .538 3.214 .538s4.286 -3.229 4.286 -5.381c-.03 -.011 -2.649 -.434 -2.679 -3.23c-.02 -2.335 2.589 -3.179 2.679 -3.228c-1.096 -1.606 -3.162 -2.113 -3.75 -2.153c-1.535 -.12 -3.032 1.077 -3.75 1.077c-.729 0 -2.036 -1.077 -3.214 -1.077z\" /><path d=\"M12 4a2 2 0 0 0 2 -2a2 2 0 0 0 -2 2\" /></svg>", "apps": [{"name": "Happ", "featured": true, "blocks": [{"title": "Шаг 1. Установи приложение", "description": "Выберите подходящую версию для вашего устройства, нажмите на кнопку ниже и установите приложение.", "svgIconKey": "DownloadIcon", "svgIconColor": "violet", "buttons": [{"text": "App Store (RU)", "link": "https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973", "type": "external", "svgIconKey": "ExternalLink"}, {"text": "App Store (Global)", "link": "https://apps.apple.com/us/app/happ-proxy-utility/id6504287215", "type": "external", "svgIconKey": "ExternalLink"}]}, {"title": "Шаг 2. Нажмите «Подключиться»", "description": "Нажмите кнопку ниже — приложение откроется, и подписка добавится автоматически.", "svgIconKey": "CloudDownload", "svgIconColor": "cyan", "buttons": [{"text": "Подключить", "link": "happ://add/__SUBSCRIPTION_LINK__", "type": "subscriptionLink", "svgIconKey": "Plus"}]}, {"title": "Готово", "description": "Подключитесь к VPN в приложении и выберите сервер из списка.", "svgIconKey": "Check", "svgIconColor": "teal", "buttons": []}]}], "app_name": "Happ", "blocks": [{"title": "Шаг 1. Установи приложение", "description": "Выберите подходящую версию для вашего устройства, нажмите на кнопку ниже и установите приложение.", "svgIconKey": "DownloadIcon", "svgIconColor": "violet", "buttons": [{"text": "App Store (RU)", "link": "https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973", "type": "external", "svgIconKey": "ExternalLink"}, {"text": "App Store (Global)", "link": "https://apps.apple.com/us/app/happ-proxy-utility/id6504287215", "type": "external", "svgIconKey": "ExternalLink"}]}, {"title": "Шаг 2. Нажмите «Подключиться»", "description": "Нажмите кнопку ниже — приложение откроется, и подписка добавится автоматически.", "svgIconKey": "CloudDownload", "svgIconColor": "cyan", "buttons": [{"text": "Подключить", "link": "happ://add/__SUBSCRIPTION_LINK__", "type": "subscriptionLink", "svgIconKey": "Plus"}]}, {"title": "Готово", "description": "Подключитесь к VPN в приложении и выберите сервер из списка.", "svgIconKey": "Check", "svgIconColor": "teal", "buttons": []}]}, "linux": {"platform_name": "Linux", "platform_icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M12 5m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\" /><path d=\"M17.723 7.41a7.992 7.992 0 0 0 -3.74 -2.162m-3.971 0a7.993 7.993 0 0 0 -3.789 2.216m-1.881 3.215a8 8 0 0 0 -.342 2.32c0 .738 .1 1.453 .287 2.132m1.96 3.428a7.993 7.993 0 0 0 3.759 2.19m4 0a7.993 7.993 0 0 0 3.747 -2.186m1.962 -3.43a8.008 8.008 0 0 0 .287 -2.131c0 -.764 -.107 -1.503 -.307 -2.203\" /><path d=\"M5 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\" /><path d=\"M19 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\" /></svg>", "apps": [{"name": "Happ", "featured": true, "blocks": [{"title": "Шаг 1. Установи приложение", "description": "Выберите подходящую версию для вашего устройства, нажмите на кнопку ниже и установите приложение.", "svgIconKey": "DownloadIcon", "svgIconColor": "violet", "buttons": [{"text": "Linux (.deb)", "link": "https://github.com/Happ-proxy/happ-desktop/releases/latest/download/Happ.linux.x64.deb", "type": "external", "svgIconKey": "ExternalLink"}]}, {"title": "Шаг 2. Нажмите «Подключиться»", "description": "Нажмите кнопку ниже — приложение откроется, и подписка добавится автоматически.", "svgIconKey": "CloudDownload", "svgIconColor": "cyan", "buttons": [{"text": "Подключить", "link": "happ://add/__SUBSCRIPTION_LINK__", "type": "subscriptionLink", "svgIconKey": "Plus"}]}, {"title": "Готово", "description": "Подключитесь к VPN в приложении и выберите сервер из списка.", "svgIconKey": "Check", "svgIconColor": "teal", "buttons": []}]}], "app_name": "Happ", "blocks": [{"title": "Шаг 1. Установи приложение", "description": "Выберите подходящую версию для вашего устройства, нажмите на кнопку ниже и установите приложение.", "svgIconKey": "DownloadIcon", "svgIconColor": "violet", "buttons": [{"text": "Linux (.deb)", "link": "https://github.com/Happ-proxy/happ-desktop/releases/latest/download/Happ.linux.x64.deb", "type": "external", "svgIconKey": "ExternalLink"}]}, {"title": "Шаг 2. Нажмите «Подключиться»", "description": "Нажмите кнопку ниже — приложение откроется, и подписка добавится автоматически.", "svgIconKey": "CloudDownload", "svgIconColor": "cyan", "buttons": [{"text": "Подключить", "link": "happ://add/__SUBSCRIPTION_LINK__", "type": "subscriptionLink", "svgIconKey": "Plus"}]}, {"title": "Готово", "description": "Подключитесь к VPN в приложении и выберите сервер из списка.", "svgIconKey": "Check", "svgIconColor": "teal", "buttons": []}]}, "macos": {"platform_name": "macOS", "platform_icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M3 4m0 1a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1z\" /><path d=\"M7 8v1\" /><path d=\"M17 8v1\" /><path d=\"M12.5 4c-.654 1.486 -1.26 3.443 -1.5 9h2.5c-.19 2.867 .094 5.024 .5 7\" /><path d=\"M7 15.5c3.667 2 6.333 2 10 0\" /></svg>", "apps": [{"name": "Happ", "featured": true, "blocks": [{"title": "Шаг 1. Установи приложение", "description": "Выберите подходящую версию для вашего устройства, нажмите на кнопку ниже и установите приложение.", "svgIconKey": "DownloadIcon", "svgIconColor": "cyan", "buttons": [{"text": "App Store (RU)", "link": "https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973", "type": "external", "svgIconKey": "ExternalLink"}, {"text": "App Store (Global)", "link": "https://apps.apple.com/us/app/happ-proxy-utility/id6504287215", "type": "external", "svgIconKey": "ExternalLink"}]}, {"title": "Шаг 2. Нажмите «Подключиться»", "description": "Нажмите кнопку ниже — приложение откроется, и подписка добавится автоматически.", "svgIconKey": "CloudDownload", "svgIconColor": "cyan", "buttons": [{"text": "Подключить", "link": "happ://add/__SUBSCRIPTION_LINK__", "type": "subscriptionLink", "svgIconKey": "Plus"}]}, {"title": "Готово", "description": "Подключитесь к VPN в приложении и выберите сервер из списка.", "svgIconKey": "Check", "svgIconColor": "teal", "buttons": []}]}], "app_name": "Happ", "blocks": [{"title": "Шаг 1. Установи приложение", "description": "Выберите подходящую версию для вашего устройства, нажмите на кнопку ниже и установите приложение.", "svgIconKey": "DownloadIcon", "svgIconColor": "cyan", "buttons": [{"text": "App Store (RU)", "link": "https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973", "type": "external", "svgIconKey": "ExternalLink"}, {"text": "App Store (Global)", "link": "https://apps.apple.com/us/app/happ-proxy-utility/id6504287215", "type": "external", "svgIconKey": "ExternalLink"}]}, {"title": "Шаг 2. Нажмите «Подключиться»", "description": "Нажмите кнопку ниже — приложение откроется, и подписка добавится автоматически.", "svgIconKey": "CloudDownload", "svgIconColor": "cyan", "buttons": [{"text": "Подключить", "link": "happ://add/__SUBSCRIPTION_LINK__", "type": "subscriptionLink", "svgIconKey": "Plus"}]}, {"title": "Готово", "description": "Подключитесь к VPN в приложении и выберите сервер из списка.", "svgIconKey": "Check", "svgIconColor": "teal", "buttons": []}]}, "android": {"platform_name": "Android", "platform_icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M4 10l0 6\" /><path d=\"M20 10l0 6\" /><path d=\"M7 9h10v8a1 1 0 0 1 -1 1h-8a1 1 0 0 1 -1 -1v-8a5 5 0 0 1 10 0\" /><path d=\"M8 3l1 2\" /><path d=\"M16 3l-1 2\" /><path d=\"M9 18l0 3\" /><path d=\"M15 18l0 3\" /></svg>", "apps": [{"name": "Happ", "featured": true, "blocks": [{"title": "Шаг 1. Установи приложение", "description": "Выберите подходящую версию для вашего устройства, нажмите на кнопку ниже и установите приложение.", "svgIconKey": "DownloadIcon", "svgIconColor": "cyan", "buttons": [{"text": "Открыть в Google Play", "link": "https://play.google.com/store/apps/details?id=com.happproxy", "type": "external", "svgIconKey": "ExternalLink"}, {"text": "Скачать APK", "link": "https://github.com/Happ-proxy/happ-android/releases/latest/download/Happ.apk", "type": "external", "svgIconKey": "ExternalLink"}]}, {"title": "Шаг 2. Нажмите «Подключиться»", "description": "Нажмите кнопку ниже — приложение откроется, и подписка добавится автоматически.", "svgIconKey": "CloudDownload", "svgIconColor": "cyan", "buttons": [{"text": "Подключить", "link": "happ://add/__SUBSCRIPTION_LINK__", "type": "subscriptionLink", "svgIconKey": "Plus"}]}, {"title": "Готово", "description": "Подключитесь к VPN в приложении и выберите сервер из списка.", "svgIconKey": "Check", "svgIconColor": "teal", "buttons": []}]}], "app_name": "Happ", "blocks": [{"title": "Шаг 1. Установи приложение", "description": "Выберите подходящую версию для вашего устройства, нажмите на кнопку ниже и установите приложение.", "svgIconKey": "DownloadIcon", "svgIconColor": "cyan", "buttons": [{"text": "Открыть в Google Play", "link": "https://play.google.com/store/apps/details?id=com.happproxy", "type": "external", "svgIconKey": "ExternalLink"}, {"text": "Скачать APK", "link": "https://github.com/Happ-proxy/happ-android/releases/latest/download/Happ.apk", "type": "external", "svgIconKey": "ExternalLink"}]}, {"title": "Шаг 2. Нажмите «Подключиться»", "description": "Нажмите кнопку ниже — приложение откроется, и подписка добавится автоматически.", "svgIconKey": "CloudDownload", "svgIconColor": "cyan", "buttons": [{"text": "Подключить", "link": "happ://add/__SUBSCRIPTION_LINK__", "type": "subscriptionLink", "svgIconKey": "Plus"}]}, {"title": "Готово", "description": "Подключитесь к VPN в приложении и выберите сервер из списка.", "svgIconKey": "Check", "svgIconColor": "teal", "buttons": []}]}, "appletv": {"platform_name": "Apple TV", "platform_icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M3 7m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z\" /><path d=\"M16 3l-4 4l-4 -4\" /></svg>", "apps": [{"name": "Happ", "featured": true, "blocks": [{"title": "Шаг 1. Установи приложение", "description": "Выберите подходящую версию для вашего устройства, нажмите на кнопку ниже и установите приложение.", "svgIconKey": "DownloadIcon", "svgIconColor": "cyan", "buttons": [{"text": "App Store", "link": "https://apps.apple.com/us/app/happ-proxy-utility-for-tv/id6748297274", "type": "external", "svgIconKey": "ExternalLink"}]}, {"title": "Инструкции по установке", "description": "Подробные инструкции, чтобы помочь вам настроить Happ на вашем устройстве.", "svgIconKey": "Gear", "svgIconColor": "cyan", "buttons": [{"text": "На русском", "link": "https://www.happ.su/main/ru/faq/apple-tv-tvos", "type": "external", "svgIconKey": "ExternalLink"}, {"text": "На английском", "link": "https://www.happ.su/main/faq/apple-tv-tvos", "type": "external", "svgIconKey": "ExternalLink"}]}, {"title": "Шаг 2. Нажмите «Подключиться»", "description": "Нажмите кнопку ниже — приложение откроется, и подписка добавится автоматически.", "svgIconKey": "CloudDownload", "svgIconColor": "cyan", "buttons": [{"text": "Подключить", "link": "happ://add/__SUBSCRIPTION_LINK__", "type": "subscriptionLink", "svgIconKey": "Plus"}]}, {"title": "Готово", "description": "Подключитесь к VPN в приложении и выберите сервер из списка.", "svgIconKey": "Check", "svgIconColor": "teal", "buttons": []}]}], "app_name": "Happ", "blocks": [{"title": "Шаг 1. Установи приложение", "description": "Выберите подходящую версию для вашего устройства, нажмите на кнопку ниже и установите приложение.", "svgIconKey": "DownloadIcon", "svgIconColor": "cyan", "buttons": [{"text": "App Store", "link": "https://apps.apple.com/us/app/happ-proxy-utility-for-tv/id6748297274", "type": "external", "svgIconKey": "ExternalLink"}]}, {"title": "Инструкции по установке", "description": "Подробные инструкции, чтобы помочь вам настроить Happ на вашем устройстве.", "svgIconKey": "Gear", "svgIconColor": "cyan", "buttons": [{"text": "На русском", "link": "https://www.happ.su/main/ru/faq/apple-tv-tvos", "type": "external", "svgIconKey": "ExternalLink"}, {"text": "На английском", "link": "https://www.happ.su/main/faq/apple-tv-tvos", "type": "external", "svgIconKey": "ExternalLink"}]}, {"title": "Шаг 2. Нажмите «Подключиться»", "description": "Нажмите кнопку ниже — приложение откроется, и подписка добавится автоматически.", "svgIconKey": "CloudDownload", "svgIconColor": "cyan", "buttons": [{"text": "Подключить", "link": "happ://add/__SUBSCRIPTION_LINK__", "type": "subscriptionLink", "svgIconKey": "Plus"}]}, {"title": "Готово", "description": "Подключитесь к VPN в приложении и выберите сервер из списка.", "svgIconKey": "Check", "svgIconColor": "teal", "buttons": []}]}, "windows": {"platform_name": "Windows", "platform_icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M17.8 20l-12 -1.5c-1 -.1 -1.8 -.9 -1.8 -1.9v-9.2c0 -1 .8 -1.8 1.8 -1.9l12 -1.5c1.2 -.1 2.2 .8 2.2 1.9v12.1c0 1.2 -1.1 2.1 -2.2 1.9z\" /><path d=\"M12 5l0 14\" /><path d=\"M4 12l16 0\" /></svg>", "apps": [{"name": "Happ", "featured": false, "blocks": [{"title": "Шаг 1. Установи приложение", "description": "Выберите подходящую версию для вашего устройства, нажмите на кнопку ниже и установите приложение.", "svgIconKey": "DownloadIcon", "svgIconColor": "cyan", "buttons": [{"text": "Windows", "link": "https://github.com/Happ-proxy/happ-desktop/releases/latest/download/setup-Happ.x64.exe", "type": "external", "svgIconKey": "ExternalLink"}]}, {"title": "Шаг 2. Нажмите «Подключиться»", "description": "Нажмите кнопку ниже — приложение откроется, и подписка добавится автоматически.", "svgIconKey": "CloudDownload", "svgIconColor": "cyan", "buttons": [{"text": "Подключить", "link": "happ://add/__SUBSCRIPTION_LINK__", "type": "subscriptionLink", "svgIconKey": "Plus"}]}, {"title": "Готово", "description": "Подключитесь к VPN в приложении и выберите сервер из списка.", "svgIconKey": "Check", "svgIconColor": "teal", "buttons": []}]}], "app_name": "Happ", "blocks": [{"title": "Шаг 1. Установи приложение", "description": "Выберите подходящую версию для вашего устройства, нажмите на кнопку ниже и установите приложение.", "svgIconKey": "DownloadIcon", "svgIconColor": "cyan", "buttons": [{"text": "Windows", "link": "https://github.com/Happ-proxy/happ-desktop/releases/latest/download/setup-Happ.x64.exe", "type": "external", "svgIconKey": "ExternalLink"}]}, {"title": "Шаг 2. Нажмите «Подключиться»", "description": "Нажмите кнопку ниже — приложение откроется, и подписка добавится автоматически.", "svgIconKey": "CloudDownload", "svgIconColor": "cyan", "buttons": [{"text": "Подключить", "link": "happ://add/__SUBSCRIPTION_LINK__", "type": "subscriptionLink", "svgIconKey": "Plus"}]}, {"title": "Готово", "description": "Подключитесь к VPN в приложении и выберите сервер из списка.", "svgIconKey": "Check", "svgIconColor": "teal", "buttons": []}]}, "androidtv": {"platform_name": "Android TV", "platform_icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M3 7m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z\" /><path d=\"M16 3l-4 4l-4 -4\" /></svg>", "apps": [{"name": "Happ", "featured": true, "blocks": [{"title": "Шаг 1. Установи приложение", "description": "Выберите подходящую версию для вашего устройства, нажмите на кнопку ниже и установите приложение.", "svgIconKey": "DownloadIcon", "svgIconColor": "cyan", "buttons": [{"text": "Открыть в Google Play", "link": "https://play.google.com/store/apps/details?id=com.happproxy", "type": "external", "svgIconKey": "ExternalLink"}, {"text": "Скачать APK", "link": "https://github.com/Happ-proxy/happ-android/releases/latest/download/Happ.apk", "type": "external", "svgIconKey": "ExternalLink"}]}, {"title": "Инструкции по установке", "description": "Подробные инструкции, чтобы помочь вам настроить Happ на вашем устройстве.", "svgIconKey": "Gear", "svgIconColor": "cyan", "buttons": [{"text": "На русском", "link": "https://www.happ.su/main/ru/faq/android-tv", "type": "external", "svgIconKey": "ExternalLink"}, {"text": "На английском", "link": "https://www.happ.su/main/faq/android-tv", "type": "external", "svgIconKey": "ExternalLink"}]}, {"title": "Шаг 2. Нажмите «Подключиться»", "description": "Нажмите кнопку ниже — приложение откроется, и подписка добавится автоматически.", "svgIconKey": "CloudDownload", "svgIconColor": "cyan", "buttons": [{"text": "Подключить", "link": "happ://add/__SUBSCRIPTION_LINK__", "type": "subscriptionLink", "svgIconKey": "Plus"}]}, {"title": "Готово", "description": "Подключитесь к VPN в приложении и выберите сервер из списка.", "svgIconKey": "Check", "svgIconColor": "teal", "buttons": []}]}], "app_name": "Happ", "blocks": [{"title": "Шаг 1. Установи приложение", "description": "Выберите подходящую версию для вашего устройства, нажмите на кнопку ниже и установите приложение.", "svgIconKey": "DownloadIcon", "svgIconColor": "cyan", "buttons": [{"text": "Открыть в Google Play", "link": "https://play.google.com/store/apps/details?id=com.happproxy", "type": "external", "svgIconKey": "ExternalLink"}, {"text": "Скачать APK", "link": "https://github.com/Happ-proxy/happ-android/releases/latest/download/Happ.apk", "type": "external", "svgIconKey": "ExternalLink"}]}, {"title": "Инструкции по установке", "description": "Подробные инструкции, чтобы помочь вам настроить Happ на вашем устройстве.", "svgIconKey": "Gear", "svgIconColor": "cyan", "buttons": [{"text": "На русском", "link": "https://www.happ.su/main/ru/faq/android-tv", "type": "external", "svgIconKey": "ExternalLink"}, {"text": "На английском", "link": "https://www.happ.su/main/faq/android-tv", "type": "external", "svgIconKey": "ExternalLink"}]}, {"title": "Шаг 2. Нажмите «Подключиться»", "description": "Нажмите кнопку ниже — приложение откроется, и подписка добавится автоматически.", "svgIconKey": "CloudDownload", "svgIconColor": "cyan", "buttons": [{"text": "Подключить", "link": "happ://add/__SUBSCRIPTION_LINK__", "type": "subscriptionLink", "svgIconKey": "Plus"}]}, {"title": "Готово", "description": "Подключитесь к VPN в приложении и выберите сервер из списка.", "svgIconKey": "Check", "svgIconColor": "teal", "buttons": []}]}};
+        const translations = {"at": "В", "name": "Имя пользователя", "active": "Активна", "status": "Статус", "expired": "Истекла", "expires": "Истекает", "getLink": "Получение ссылки", "unknown": "Неизвестно", "copyLink": "Скопировать ссылку", "inactive": "Неактивна", "bandwidth": "Трафик", "expiresIn": "Истекает", "linkCopied": "Ссылка скопирована", "scanQrCode": "Отсканируйте QR-код в приложении", "indefinitely": "Бессрочно", "scanToImport": "Отсканируйте QR-код для импорта ключа", "connectionKeysHeader": "Ключи подключения", "linkCopiedToClipboard": "Ссылка скопирована в буфер обмена", "scanQrCodeDescription": "Простое Подключи подписку в любой клиент. Есть и другой вариант: скопируйте ссылку ниже и вставьте в клиент.", "installationGuideHeader": "Установка"};
+        const svgLibrary = {"TV": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M3 7m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z\" /><path d=\"M16 3l-4 4l-4 -4\" /></svg>", "Gear": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z\" /><path d=\"M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0\" /></svg>", "Plus": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M12 5v14\" /><path d=\"M5 12h14\" /></svg>", "Star": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z\" /></svg>", "Check": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M5 12l5 5l10 -10\" /></svg>", "macOS": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M3 4m0 1a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1z\" /><path d=\"M7 8v1\" /><path d=\"M17 8v1\" /><path d=\"M12.5 4c-.654 1.486 -1.26 3.443 -1.5 9h2.5c-.19 2.867 .094 5.024 .5 7\" /><path d=\"M7 15.5c3.667 2 6.333 2 10 0\" /></svg>", "Ubuntu": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M12 5m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\" /><path d=\"M17.723 7.41a7.992 7.992 0 0 0 -3.74 -2.162m-3.971 0a7.993 7.993 0 0 0 -3.789 2.216m-1.881 3.215a8 8 0 0 0 -.342 2.32c0 .738 .1 1.453 .287 2.132m1.96 3.428a7.993 7.993 0 0 0 3.759 2.19m4 0a7.993 7.993 0 0 0 3.747 -2.186m1.962 -3.43a8.008 8.008 0 0 0 .287 -2.131c0 -.764 -.107 -1.503 -.307 -2.203\" /><path d=\"M5 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\" /><path d=\"M19 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0\" /></svg>", "Android": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M4 10l0 6\" /><path d=\"M20 10l0 6\" /><path d=\"M7 9h10v8a1 1 0 0 1 -1 1h-8a1 1 0 0 1 -1 -1v-8a5 5 0 0 1 10 0\" /><path d=\"M8 3l1 2\" /><path d=\"M16 3l-1 2\" /><path d=\"M9 18l0 3\" /><path d=\"M15 18l0 3\" /></svg>", "Windows": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M17.8 20l-12 -1.5c-1 -.1 -1.8 -.9 -1.8 -1.9v-9.2c0 -1 .8 -1.8 1.8 -1.9l12 -1.5c1.2 -.1 2.2 .8 2.2 1.9v12.1c0 1.2 -1.1 2.1 -2.2 1.9z\" /><path d=\"M12 5l0 14\" /><path d=\"M4 12l16 0\" /></svg>", "AppleIcon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M8.286 7.008c-3.216 0 -4.286 3.23 -4.286 5.92c0 3.229 2.143 8.072 4.286 8.072c1.165 -.05 1.799 -.538 3.214 -.538c1.406 0 1.607 .538 3.214 .538s4.286 -3.229 4.286 -5.381c-.03 -.011 -2.649 -.434 -2.679 -3.23c-.02 -2.335 2.589 -3.179 2.679 -3.228c-1.096 -1.606 -3.162 -2.113 -3.75 -2.153c-1.535 -.12 -3.032 1.077 -3.75 1.077c-.729 0 -2.036 -1.077 -3.214 -1.077z\" /><path d=\"M12 4a2 2 0 0 0 2 -2a2 2 0 0 0 -2 2\" /></svg>", "DownloadIcon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2\" /><path d=\"M7 11l5 5l5 -5\" /><path d=\"M12 4l0 12\" /></svg>", "ExternalLink": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6\" /><path d=\"M11 13l9 -9\" /><path d=\"M15 4h5v5\" /></svg>", "CloudDownload": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M19 18a3.5 3.5 0 0 0 0 -7h-1a5 4.5 0 0 0 -11 -2a4.6 4.4 0 0 0 -2.1 8.4\" /><path d=\"M12 13l0 9\" /><path d=\"M9 19l3 3l3 -3\" /></svg>"};
+
+        let currentPlatform = "android";
+        let currentApp = null;
+
+        function init() {
+            if (platformsData && Object.keys(platformsData).length > 0) {
+                updatePlatform(currentPlatform);
+            } else {
+                console.error('No platforms data available');
+            }
+            setupEventListeners();
+        }
+
+        function updatePlatform(platformKey) {
+            const platform = platformsData[platformKey];
+            if (!platform) {
+                console.warn('Platform not found:', platformKey);
+                return;
+            }
+
+            currentPlatform = platformKey;
+
+            const platformIcon = document.getElementById('platform-icon');
+            if (platformIcon && platform.platform_icon) {
+                platformIcon.innerHTML = platform.platform_icon;
+            }
+
+            updateApps(platform.apps || []);
+
+            if (platform.apps && platform.apps.length > 0) {
+                const featuredApp = platform.apps.find(app => app.featured) || platform.apps[0];
+                if (featuredApp) {
+                    currentApp = featuredApp.name;
+                    updateTimeline(featuredApp.blocks || []);
+                }
+            }
+        }
+
+        function updateApps(apps) {
+            const appButtonsContainer = document.getElementById('app-buttons');
+            if (!appButtonsContainer) return;
+
+            if (apps.length <= 1) {
+                appButtonsContainer.style.display = 'none';
+                return;
+            }
+
+            appButtonsContainer.style.display = 'flex';
+            appButtonsContainer.innerHTML = '';
+
+            apps.forEach(app => {
+                const isActive = app.name === currentApp;
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'app-tab';
+                button.setAttribute('aria-pressed', String(isActive));
+                button.textContent = app.name;
+                button.onclick = () => {
+                    currentApp = app.name;
+                    updateApps(apps);
+                    updateTimeline(app.blocks || []);
+                };
+                appButtonsContainer.appendChild(button);
+            });
+        }
+
+        function updateTimeline(blocks) {
+            const timelineContent = document.getElementById('timeline-content');
+            if (!timelineContent) return;
+
+            timelineContent.innerHTML = '<div id="timeline-vertical-line"></div>';
+
+            blocks.forEach((block, index) => {
+                const item = document.createElement('div');
+                item.className = 'step';
+
+                const iconSvg = svgLibrary[block.svgIconKey] || (index + 1);
+
+                item.innerHTML = `
+                    <div class="step__num" aria-hidden="true">
+                        ${svgLibrary[block.svgIconKey]
+                            ? `<span style="display:inline-flex;width:18px;height:18px;">${svgLibrary[block.svgIconKey]}</span>`
+                            : `<span style="font-family:var(--font-mono);font-weight:700;">${index + 1}</span>`}
+                    </div>
+                    <div class="step__body">
+                        <h3 class="step__title">${block.title}</h3>
+                        <p class="step__desc">${block.description}</p>
+                        ${renderButtons(block)}
+                    </div>
+                `;
+
+                timelineContent.appendChild(item);
+            });
+
+            const line = document.getElementById('timeline-vertical-line');
+            if (line) line.style.display = blocks.length > 1 ? '' : 'none';
+        }
+
+        function renderButtons(block) {
+            if (!block.buttons || block.buttons.length === 0) {
+                return '';
+            }
+
+            const buttonsHtml = block.buttons.map(button => {
+                const buttonIcon = svgLibrary[button.svgIconKey] || '';
+                const isSubscription = button.type === 'subscriptionLink';
+                const link = button.link.replace('__SUBSCRIPTION_LINK__', cleanUrl);
+                const iconSpan = buttonIcon
+                    ? `<span aria-hidden="true" style="display:inline-flex;width:16px;height:16px;">${buttonIcon}</span>`
+                    : '';
+
+                if (isSubscription) {
+                    return `
+                        <button onclick="openDeepLink('${link}')" class="btn btn--primary" type="button">
+                            ${iconSpan}<span>${button.text}</span>
+                        </button>
+                    `;
+                }
+
+                return `
+                    <a href="${link}" target="_blank" rel="noreferrer" class="btn btn--ghost">
+                        ${iconSpan}<span>${button.text}</span>
+                    </a>
+                `;
+            }).join('');
+
+            return `<div class="step__actions">${buttonsHtml}</div>`;
+        }
+
+        function openDeepLink(url) {
+            console.log('Открываем ссылку:', url);
+            
+            if (url.startsWith('happ://')) {
+                const link = document.createElement('a');
+                link.href = url;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                return;
+            }
+            
+            if (window.Telegram && window.Telegram.WebApp) {
+                try {
+                    window.Telegram.WebApp.openLink(url);
+                    console.log('Ссылка открыта через Telegram WebApp');
+                    return;
+                } catch (e) {
+                    console.error('Ошибка openLink:', e);
+                }
+            }
+            window.location.href = url;
+        }
+
+        async function copyToClipboard(text) {
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(text);
+                    showToast(translations.linkCopiedToClipboard || translations.linkCopied || 'Ссылка скопирована');
+                    return true;
+                } else {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = text;
+                    textArea.style.position = 'fixed';
+                    textArea.style.opacity = '0';
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    try {
+                        document.execCommand('copy');
+                        showToast(translations.linkCopiedToClipboard || translations.linkCopied || 'Ссылка скопирована');
+                        return true;
+                    } catch (err) {
+                        console.error('Failed to copy:', err);
+                        return false;
+                    } finally {
+                        document.body.removeChild(textArea);
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to copy:', err);
+                return false;
+            }
+        }
+
+        let toastHideTimer = null;
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastText = document.getElementById('toast-text');
+            if (!toast || !toastText) return;
+
+            toastText.textContent = message;
+            toast.classList.add('show');
+
+            clearTimeout(toastHideTimer);
+            toastHideTimer = setTimeout(function() {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function setupEventListeners() {
+            const platformSelect = document.getElementById('platform-select');
+            if (platformSelect) {
+                platformSelect.addEventListener('change', (e) => {
+                    updatePlatform(e.target.value);
+                });
+            }
+
+            const shareDropdown = document.getElementById('share-dropdown');
+            const copyLinkAction = document.getElementById('copy-link-action');
+            const showQrAction = document.getElementById('show-qr-action');
+            const qrModal = document.getElementById('qr-modal');
+            const qrClose = document.getElementById('qr-close');
+            const qrCode = document.getElementById('qr-code');
+
+            if (copyLinkAction) {
+                copyLinkAction.addEventListener('click', () => {
+                    copyToClipboard(cleanUrl);
+                    shareDropdown?.hidePopover?.();
+                });
+            }
+
+            if (showQrAction && qrModal && qrCode) {
+                showQrAction.addEventListener('click', () => {
+                    shareDropdown?.hidePopover?.();
+                    qrCode.innerHTML = '';
+
+                    if (typeof QRCode !== 'undefined') {
+                        try {
+                            new QRCode(qrCode, {
+                                text: cleanUrl,
+                                width: 200,
+                                height: 200,
+                                colorDark: '#0a0b0a',
+                                colorLight: '#ffffff',
+                                correctLevel: QRCode.CorrectLevel.M
+                            });
+                        } catch (err) {
+                            console.error('QR code generation error:', err);
+                            qrCode.innerHTML = '<p style="color:var(--danger);padding:1rem;">Ошибка генерации QR-кода</p>';
+                        }
+                    } else {
+                        qrCode.innerHTML = '<p style="color:var(--danger);padding:1rem;">Библиотека QR не загружена</p>';
+                    }
+
+                    qrModal.showModal();
+                });
+            }
+
+            if (qrModal) {
+                if (qrClose) {
+                    qrClose.addEventListener('click', () => qrModal.close());
+                }
+
+                if (!('closedBy' in HTMLDialogElement.prototype)) {
+                    qrModal.addEventListener('click', (event) => {
+                        if (event.target !== qrModal) return;
+                        const rect = qrModal.getBoundingClientRect();
+                        const insideContent =
+                            rect.top <= event.clientY && event.clientY <= rect.bottom &&
+                            rect.left <= event.clientX && event.clientX <= rect.right;
+                        if (!insideContent) qrModal.close();
+                    });
+                }
+            }
+        }
+
+        // Проверяем, нужно ли показывать страницу подписки на спонсоров
+        // Если есть параметр show_check=1 в URL - показываем check.html
+        const urlParams = new URLSearchParams(window.location.search);
+        const showCheck = urlParams.get('show_check');
+
+        if (showCheck === '1') {
+            // Редирект на страницу подписки
+            window.location.href = `/check/${token}`;
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

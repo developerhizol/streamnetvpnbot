@@ -1,0 +1,2927 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamNet VPN — Админ панель</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <style>
+        :root {
+            color-scheme: dark;
+            --ink-900: #0d1117;
+            --ink-850: #11161d;
+            --ink-800: #161b22;
+            --ink-700: #1d242d;
+            --ink-600: #2b333d;
+            --signal: #5a8a94;
+            --signal-dim: #487079;
+            --signal-glow: rgba(90, 138, 148, 0.3);
+            --paper: #e6edf3;
+            --paper-dim: #9aa7b4;
+            --paper-mute: #7a8694;
+            --danger: #ff6b6b;
+            --success: #4ad08a;
+            --bg: var(--ink-900);
+            --surface: var(--ink-800);
+            --surface-2: var(--ink-700);
+            --line: color-mix(in oklab, var(--paper) 10%, transparent);
+            --line-strong: color-mix(in oklab, var(--signal) 35%, transparent);
+            --text: var(--paper);
+            --text-2: var(--paper-dim);
+            --text-3: var(--paper-mute);
+            --accent: var(--signal);
+            --accent-ink: #06181c;
+            --font-body: 'Manrope', system-ui, sans-serif;
+            --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+            --r-sm: 0.5rem;
+            --r-md: 0.875rem;
+            --r-lg: 1.25rem;
+            --shadow-card: 0 1px 0 color-mix(in oklab, var(--paper) 6%, transparent) inset, 0 20px 40px -24px rgba(0, 0, 0, 0.8);
+            --glow: 0 0 0 1px color-mix(in oklab, var(--signal) 40%, transparent), 0 0 28px -6px color-mix(in oklab, var(--signal) 55%, transparent);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100dvh;
+            font-family: var(--font-body);
+            color: var(--text);
+            background-color: var(--bg);
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+            background-image: radial-gradient(120% 80% at 85% -10%, color-mix(in oklab, var(--signal) 12%, transparent), transparent 60%), radial-gradient(90% 60% at 0% 0%, color-mix(in oklab, #2bd6c0 7%, transparent), transparent 55%), linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 64px 64px, 64px 64px;
+            background-attachment: fixed;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+        body > * { position: relative; z-index: 1; }
+        h1, h2, h3 { text-wrap: balance; margin: 0; }
+        p { margin: 0; }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        :where(a, button, summary, select, [tabindex]):focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 3px;
+            border-radius: 4px;
+        }
+        .visually-hidden:where(:not(:focus-within, :active)) {
+            position: absolute !important;
+            clip-path: inset(50%) !important;
+            overflow: hidden !important;
+            width: 1px !important; height: 1px !important;
+            margin: -1px !important; padding: 0 !important; border: 0 !important;
+            white-space: nowrap !important;
+        }
+        .skip-link:focus {
+            position: fixed;
+            inset-block-start: 0.75rem;
+            inset-inline-start: 0.75rem;
+            z-index: 1100;
+            padding: 0.5rem 0.85rem;
+            background: var(--accent);
+            color: var(--accent-ink);
+            border-radius: var(--r-sm);
+            font-weight: 700;
+        }
+        .shell { width: min(1100px, 100% - 2.5rem); margin-inline: auto; }
+        .site-header {
+            padding-block: 1.5rem 0.5rem;
+            animation: slideDown 0.8s cubic-bezier(.2,.8,.2,1) both;
+        }
+        .site-header__row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 1.05rem;
+            letter-spacing: -0.02em;
+            color: var(--text);
+        }
+        .brand__dot {
+            width: 0.6rem;
+            height: 0.6rem;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 12px var(--accent);
+            animation: pulse 2.4s ease-in-out infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+        .header-actions { display: flex; align-items: center; gap: 0.5rem; }
+        .icon-btn {
+            inline-size: 2.75rem;
+            block-size: 2.75rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--r-sm);
+            background: var(--surface);
+            border: 1px solid var(--line);
+            color: var(--text-2);
+            cursor: pointer;
+            transition: color .2s, border-color .2s, background .2s, transform .1s;
+            text-decoration: none;
+            font-size: 1.1rem;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .icon-btn:hover { color: var(--accent); border-color: var(--line-strong); background: var(--surface-2); transform: translateY(-2px); }
+        .icon-btn:active { transform: scale(.94); }
+        .icon-btn.refreshing i { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .card {
+            background: linear-gradient(180deg, color-mix(in oklab, var(--paper) 3%, transparent), transparent 30%), var(--surface);
+            border: 1px solid var(--line);
+            border-radius: var(--r-lg);
+            box-shadow: var(--shadow-card);
+            padding: 1.5rem;
+            margin-top: 1.25rem;
+            transition: transform .3s ease, box-shadow .3s ease;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-card), 0 0 40px -12px var(--signal-glow);
+        }
+        .card:first-of-type { margin-top: 0; }
+        .card__title {
+            font-family: var(--font-mono);
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            margin-bottom: 1rem;
+        }
+        .card__title i { color: var(--accent); }
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+        .stat {
+            border: 1px solid var(--line);
+            border-radius: var(--r-md);
+            background: color-mix(in oklab, var(--ink-850) 70%, transparent);
+            padding: 0.85rem 1rem;
+            text-align: center;
+            transition: border-color .3s ease, transform .3s ease, box-shadow .3s ease;
+            cursor: default;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .stat:hover {
+            border-color: var(--line-strong);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px -12px var(--signal-glow);
+        }
+        .stat__label {
+            font-size: 0.78rem;
+            color: var(--text-2);
+            font-weight: 500;
+        }
+        .stat__label i { color: var(--accent); margin-right: 0.3rem; }
+        .stat__value {
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-top: 0.2rem;
+        }
+        .stat__value .currency {
+            font-size: 0.9rem;
+            color: var(--text-3);
+            font-weight: 400;
+        }
+        .table-wrap {
+            overflow-x: auto;
+            border-radius: var(--r-md);
+            border: 1px solid var(--line);
+            background: color-mix(in oklab, var(--ink-850) 70%, transparent);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            min-width: 600px;
+        }
+        thead { background: var(--ink-850); }
+        th {
+            text-align: left;
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            color: var(--text-3);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--line);
+        }
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--line);
+            color: var(--text-2);
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: color-mix(in oklab, var(--ink-700) 40%, transparent); }
+        .user-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .user-avatar {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            flex-shrink: 0;
+            overflow: hidden;
+            background: linear-gradient(135deg, var(--accent), #2bd6c0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.75rem;
+            color: var(--accent-ink);
+        }
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .user-avatar .fallback {
+            font-weight: 700;
+            font-size: 0.75rem;
+            color: var(--accent-ink);
+        }
+        .user-name { font-weight: 500; color: var(--text); }
+        .user-username { font-size: 0.7rem; color: var(--text-3); }
+        .user-id { font-size: 0.7rem; color: var(--text-3); font-family: var(--font-mono); }
+        .plan-badge {
+            display: inline-block;
+            padding: 0.15rem 0.7rem;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            font-family: var(--font-mono);
+        }
+        .plan-badge.free { background: #1a2a2a; color: #6b9a8a; }
+        .plan-badge.premium { background: #2a1a3a; color: #b48ad4; }
+        .status-badge {
+            display: inline-block;
+            padding: 0.15rem 0.7rem;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .status-badge.active { background: #0a2a1a; color: #4ad08a; }
+        .status-badge.inactive { background: #2a1a1a; color: #d04a4a; }
+        .status-badge.banned { background: #2a0a0a; color: #d04a4a; }
+        .actions {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            padding: 0.4rem 1rem;
+            border-radius: var(--r-sm);
+            border: 1px solid transparent;
+            font-family: var(--font-body);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .btn:active { transform: scale(.96); }
+        .btn-sm {
+            padding: 0.25rem 0.7rem;
+            border-radius: var(--r-sm);
+            border: 1px solid var(--line);
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            font-family: var(--font-body);
+            background: var(--surface-2);
+            color: var(--text-2);
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .btn-sm:hover { border-color: var(--line-strong); color: var(--text); transform: translateY(-1px); }
+        .btn-sm.danger { border-color: var(--danger); color: var(--danger); }
+        .btn-sm.danger:hover { background: var(--danger); color: var(--accent-ink); }
+        .btn-sm.success { border-color: #4ad08a; color: #4ad08a; }
+        .btn-sm.success:hover { background: #4ad08a; color: var(--accent-ink); }
+        .btn-sm.primary { border-color: var(--accent); color: var(--accent); }
+        .btn-sm.primary:hover { background: var(--accent); color: var(--accent-ink); }
+        .btn-primary {
+            background: var(--accent);
+            color: var(--accent-ink);
+            box-shadow: var(--glow);
+        }
+        .btn-primary:hover { filter: brightness(1.08); transform: translateY(-2px); }
+        .btn-success {
+            background: var(--success);
+            color: var(--accent-ink);
+        }
+        .btn-success:hover { filter: brightness(1.08); transform: translateY(-2px); }
+        .btn-danger {
+            background: var(--danger);
+            color: var(--accent-ink);
+        }
+        .btn-danger:hover { filter: brightness(1.08); transform: translateY(-2px); }
+        .btn-ghost {
+            background: var(--surface-2);
+            border-color: var(--line);
+            color: var(--text);
+        }
+        .btn-ghost:hover { border-color: var(--line-strong); color: var(--accent); transform: translateY(-2px); }
+        .btn-block { width: 100%; justify-content: center; }
+        .empty-state {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--text-3);
+        }
+        .empty-state i { font-size: 2rem; color: var(--text-3); margin-bottom: 0.5rem; }
+        .badge-count {
+            background: var(--accent);
+            color: var(--accent-ink);
+            padding: 0.1rem 0.6rem;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            margin-left: 0.5rem;
+        }
+        .server-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--r-sm);
+            border: 1px solid var(--line);
+            background: color-mix(in oklab, var(--ink-850) 50%, transparent);
+            margin-bottom: 0.4rem;
+            transition: border-color .2s;
+        }
+        .server-item:hover { border-color: var(--line-strong); }
+        .server-item:last-child { margin-bottom: 0; }
+        .server-name {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 70%;
+        }
+        .server-actions { display: flex; gap: 0.3rem; flex-shrink: 0; }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(6px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--line-strong);
+            border-radius: var(--r-lg);
+            padding: 1.5rem;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: var(--shadow-card), var(--glow);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal__title {
+            font-family: var(--font-mono);
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .modal__title i { color: var(--accent); }
+        .modal__body { margin-bottom: 1rem; }
+        .modal__actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+        .form-group { margin-bottom: 0.75rem; }
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-2);
+            margin-bottom: 0.25rem;
+        }
+        .form-group textarea,
+        .form-group input {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            border-radius: var(--r-sm);
+            border: 1px solid var(--line);
+            background: var(--ink-850);
+            color: var(--text);
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            transition: border-color .2s;
+            resize: vertical;
+        }
+        .form-group textarea:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--signal-glow);
+        }
+        .form-group textarea { min-height: 100px; }
+        .toast {
+            position: fixed;
+            inset-block-end: 1.75rem;
+            inset-inline-start: 50%;
+            translate: -50% 60px;
+            opacity: 0;
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.7rem 1.2rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--accent-ink);
+            background: var(--accent);
+            border-radius: 999px;
+            box-shadow: var(--glow);
+            transition: translate .35s cubic-bezier(.2,.9,.3,1), opacity .35s;
+            pointer-events: none;
+        }
+        .toast.show { translate: -50% 0; opacity: 1; }
+        .toast.error { background: var(--danger); color: #fff; }
+        .footer {
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            font-size: 0.75rem;
+            color: var(--text-3);
+            border-top: 1px solid var(--line);
+            padding-top: 1.25rem;
+        }
+        .footer a {
+            color: var(--text-3);
+            transition: color .2s;
+        }
+        .footer a:hover { color: var(--accent); text-decoration: none; }
+        .footer-links { display: flex; gap: 1rem; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .mt-1 { margin-top: 0.75rem; }
+        .mb-1 { margin-bottom: 0.75rem; }
+        .flex { display: flex; }
+        .flex-center { align-items: center; justify-content: center; }
+        .gap-1 { gap: 0.75rem; }
+        .flex-wrap { flex-wrap: wrap; }
+        .flex-between { justify-content: space-between; }
+        .w-full { width: 100%; }
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            margin-top: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .pagination button {
+            padding: 0.3rem 0.7rem;
+            border-radius: var(--r-sm);
+            border: 1px solid var(--line);
+            background: var(--surface-2);
+            color: var(--text-2);
+            font-family: var(--font-body);
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all .2s;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .pagination button:hover { border-color: var(--line-strong); color: var(--text); }
+        .pagination button.active {
+            background: var(--accent);
+            color: var(--accent-ink);
+            border-color: var(--accent);
+        }
+        .pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .pagination .info {
+            font-size: 0.75rem;
+            color: var(--text-3);
+            padding: 0 0.5rem;
+        }
+        .login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100dvh;
+            padding: 1rem;
+        }
+        .login-card {
+            background: var(--surface);
+            border: 1px solid var(--line-strong);
+            border-radius: var(--r-lg);
+            padding: 2rem;
+            max-width: 380px;
+            width: 100%;
+            box-shadow: var(--shadow-card), var(--glow);
+        }
+        .login-card .brand {
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+        .login-card .form-group { margin-bottom: 1rem; }
+        .login-card .form-group label { font-size: 0.75rem; }
+        .login-card .btn { width: 100%; }
+        .login-error {
+            color: var(--danger);
+            font-size: 0.8rem;
+            text-align: center;
+            margin-top: 0.5rem;
+            display: none;
+        }
+        .login-error.show { display: block; }
+        .hidden { display: none !important; }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes rise {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .reveal {
+            opacity: 0;
+            animation: rise .6s cubic-bezier(.2,.8,.2,1) both;
+        }
+        .reveal:nth-of-type(1) { animation-delay: .05s; }
+        .reveal:nth-of-type(2) { animation-delay: .15s; }
+        .reveal:nth-of-type(3) { animation-delay: .25s; }
+        @media (prefers-reduced-motion: reduce) {
+            *, ::before, ::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            .brand__dot { animation: none; }
+            .card:hover { transform: none; }
+            .stat:hover { transform: none; }
+        }
+        @media (max-width: 768px) {
+            .grid-4 { grid-template-columns: 1fr 1fr; }
+            .grid-2 { grid-template-columns: 1fr; }
+            .shell { width: 100% - 1.5rem; }
+            .site-header__row { flex-wrap: wrap; }
+            .login-card { padding: 1.5rem; }
+            .tab-bar .tab-btn { font-size: 0.7rem; padding: 0.3rem 0.6rem; }
+        }
+        @media (max-width: 480px) {
+            .grid-4 { grid-template-columns: 1fr; }
+            .footer { flex-direction: column; text-align: center; }
+            .footer-links { flex-wrap: wrap; justify-content: center; }
+            .actions { justify-content: flex-start; }
+            table { font-size: 0.75rem; min-width: 400px; }
+            th, td { padding: 0.5rem 0.6rem; }
+            .stat__value { font-size: 1.2rem; }
+            .server-name { max-width: 50%; font-size: 0.7rem; }
+            .tab-bar .tab-btn { font-size: 0.65rem; padding: 0.2rem 0.5rem; }
+        }
+        [popover] {
+            position: fixed;
+            margin: 0;
+            padding: 0.5rem;
+            background: var(--surface);
+            border: 1px solid var(--line-strong);
+            border-radius: var(--r-md);
+            box-shadow: var(--shadow-card), var(--glow);
+            color: var(--text);
+            min-width: 10rem;
+        }
+        [popover]:popover-open {
+            inset: unset;
+            position-anchor: --anchor-btn;
+            position-area: block-end;
+            margin-block-start: 0.5rem;
+        }
+        .popover-item {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            width: 100%;
+            padding: 0.5rem 0.7rem;
+            border: none;
+            border-radius: var(--r-sm);
+            background: transparent;
+            color: var(--text-2);
+            font-family: var(--font-body);
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background .15s, color .15s;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .popover-item:hover { background: var(--surface-2); color: var(--accent); }
+        .popover-item i { width: 1.2rem; text-align: center; }
+        .tab-bar {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+            gap: 0.3rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 0.5rem;
+        }
+        .tab-btn {
+            padding: 0.5rem 0.8rem;
+            border: none;
+            border-radius: var(--r-sm);
+            background: transparent;
+            color: var(--text-3);
+            font-family: var(--font-body);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            text-align: center;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .tab-btn:hover { color: var(--text); background: var(--surface-2); }
+        .tab-btn.active {
+            color: var(--accent);
+            background: var(--surface-2);
+            border: 1px solid var(--line-strong);
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .server-list { max-height: 300px; overflow-y: auto; }
+        .server-list::-webkit-scrollbar { width: 4px; }
+        .server-list::-webkit-scrollbar-track { background: transparent; }
+        .server-list::-webkit-scrollbar-thumb { background: var(--ink-600); border-radius: 4px; }
+        .broadcast-preview {
+            border: 1px solid var(--line-strong);
+            border-radius: var(--r-md);
+            padding: 1rem;
+            background: var(--ink-850);
+            margin-top: 0.5rem;
+            min-height: 100px;
+        }
+        .broadcast-preview .message-content {
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .broadcast-preview .media-preview {
+            max-width: 100%;
+            border-radius: var(--r-sm);
+            margin-bottom: 0.5rem;
+        }
+        .broadcast-preview .media-preview img,
+        .broadcast-preview .media-preview video {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: var(--r-sm);
+        }
+        .btn-editor {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: var(--r-sm);
+            border: 1px solid var(--line);
+            background: var(--surface-2);
+            color: var(--text-2);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all .2s;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            flex: 1;
+            min-width: 32px;
+        }
+        .btn-editor:hover {
+            border-color: var(--line-strong);
+            color: var(--text);
+        }
+        .btn-editor.active {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: color-mix(in oklab, var(--accent) 15%, transparent);
+        }
+        .format-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background: var(--surface);
+            border-radius: var(--r-sm);
+            border: 1px solid var(--line);
+        }
+        .format-toolbar .btn-editor {
+            font-size: 0.8rem;
+            padding: 0.3rem 0.7rem;
+            flex: 1 1 auto;
+        }
+        .button-builder {
+            border: 1px solid var(--line);
+            border-radius: var(--r-sm);
+            padding: 0.75rem;
+            background: var(--ink-850);
+            margin-top: 0.5rem;
+            position: relative;
+        }
+        .button-builder:first-child { margin-top: 0; }
+        .button-builder .row {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 0.3rem;
+        }
+        .button-builder .row:last-child { margin-bottom: 0; }
+        .button-builder input, .button-builder select {
+            padding: 0.3rem 0.6rem;
+            border-radius: var(--r-sm);
+            border: 1px solid var(--line);
+            background: var(--ink-800);
+            color: var(--text);
+            font-size: 0.8rem;
+            font-family: var(--font-body);
+            flex: 1;
+            min-width: 80px;
+        }
+        .button-builder .btn-text { flex: 1.2; }
+        .button-builder .btn-url { flex: 1.5; }
+        .button-builder .btn-color { flex: 0.8; }
+        .button-builder .btn-emoji-id { flex: 0.8; }
+        .btn-remove-row {
+            color: var(--danger);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 0.2rem 0.4rem;
+            flex: 0 0 auto;
+        }
+        .btn-remove-row:hover { opacity: 0.7; }
+        .button-builder .remove-row-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            min-width: 32px;
+        }
+        .broadcast-panel { display: none; }
+        .broadcast-panel.active { display: block; }
+        .broadcast-preview .inline-button {
+            display: inline-block;
+            padding: 0.25rem 0.8rem;
+            border-radius: var(--r-sm);
+            border: 1px solid transparent;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin: 0.15rem;
+            cursor: default;
+            text-decoration: none;
+        }
+        .broadcast-preview .inline-button.primary { background: var(--accent); color: var(--accent-ink); }
+        .broadcast-preview .inline-button.success { background: #4ad08a; color: #0a1a0a; }
+        .broadcast-preview .inline-button.danger { background: var(--danger); color: #1a0a0a; }
+        .broadcast-preview .inline-button.default { background: var(--surface-2); color: var(--text); border: 1px solid var(--line); }
+        .broadcast-preview .inline-button-row {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            margin-top: 0.5rem;
+        }
+        .inline-button-row .btn-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+            width: 100%;
+        }
+        .inline-button-row .btn-row .inline-button {
+            flex: 0 1 auto;
+        }
+        .btn-add-row {
+            margin-top: 0.5rem;
+        }
+        .premium-template {
+            background: var(--ink-850);
+            border: 1px solid var(--line);
+            border-radius: var(--r-sm);
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-2);
+            display: none;
+        }
+        .premium-template code {
+            color: var(--accent);
+        }
+        .premium-template.show {
+            display: block;
+        }
+        .media-upload {
+            border: 2px dashed var(--line);
+            border-radius: var(--r-md);
+            padding: 1.5rem;
+            text-align: center;
+            color: var(--text-3);
+            cursor: pointer;
+            transition: border-color .2s;
+            margin-top: 0.5rem;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .media-upload:hover {
+            border-color: var(--line-strong);
+        }
+        .media-upload.has-media {
+            border-color: var(--accent);
+        }
+        .media-upload .preview-container {
+            margin-top: 0.5rem;
+        }
+        .media-upload .preview-container img,
+        .media-upload .preview-container video {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: var(--r-sm);
+        }
+        .media-upload .remove-media {
+            margin-top: 0.3rem;
+            color: var(--danger);
+            cursor: pointer;
+        }
+        .media-upload .remove-media:hover { opacity: 0.7; }
+        .plan-select {
+            border: 1px solid var(--line);
+            border-radius: var(--r-md);
+            padding: 0.75rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all .2s;
+            background: var(--ink-850);
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .plan-select:hover {
+            border-color: var(--line-strong);
+            background: var(--surface-2);
+            transform: translateY(-2px);
+        }
+        .plan-select.active {
+            border-color: var(--accent);
+            background: color-mix(in oklab, var(--accent) 15%, transparent);
+            box-shadow: 0 0 20px -8px var(--signal-glow);
+        }
+        .plan-select .plan-icon {
+            font-size: 1.5rem;
+            display: block;
+            margin-bottom: 0.2rem;
+        }
+        .plan-select .plan-name {
+            font-weight: 700;
+            font-size: 0.8rem;
+            color: var(--text);
+        }
+        .plan-select .plan-desc {
+            font-size: 0.65rem;
+            color: var(--text-3);
+        }
+        .servers-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            flex-wrap: nowrap;
+        }
+        .servers-header .badge-count {
+            margin-left: 0.3rem;
+            flex-shrink: 0;
+        }
+        .servers-header .servers-actions {
+            display: flex;
+            gap: 0.3rem;
+            flex-shrink: 0;
+        }
+        .servers-header .servers-actions .btn {
+            padding: 0.3rem 0.7rem;
+            font-size: 0.7rem;
+            white-space: nowrap;
+        }
+        @media (max-width: 600px) {
+            .servers-header {
+                flex-wrap: wrap;
+            }
+            .servers-header .servers-actions {
+                flex-wrap: wrap;
+            }
+        }
+        .maintenance-status .status-circle {
+            display: inline-block;
+            width: 0.7rem;
+            height: 0.7rem;
+            border-radius: 50%;
+            margin-right: 0.3rem;
+        }
+        .maintenance-status .status-circle.on { background: #4ad08a; }
+        .maintenance-status .status-circle.off { background: #ff6b6b; }
+        .search-box {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 0.75rem;
+        }
+        .search-box input {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.5rem 0.8rem;
+            border-radius: var(--r-sm);
+            border: 1px solid var(--line);
+            background: var(--ink-850);
+            color: var(--text);
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            transition: border-color .2s;
+        }
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--signal-glow);
+        }
+        .search-box .btn {
+            padding: 0.5rem 1rem;
+            flex-shrink: 0;
+        }
+        .search-result-highlight {
+            background: color-mix(in oklab, var(--accent) 20%, transparent);
+            border-radius: var(--r-sm);
+            padding: 0.2rem 0.4rem;
+        }
+        .user-preview {
+            border: 1px solid var(--line);
+            border-radius: var(--r-md);
+            padding: 0.75rem;
+            background: var(--ink-850);
+            margin-top: 0.5rem;
+            display: none;
+        }
+        .user-preview.visible {
+            display: block;
+        }
+        .user-preview .user-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .user-preview .user-avatar {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            flex-shrink: 0;
+            overflow: hidden;
+            background: linear-gradient(135deg, var(--accent), #2bd6c0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--accent-ink);
+        }
+        .user-preview .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .user-preview .user-info .user-name {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+        .user-preview .user-info .user-username {
+            font-size: 0.8rem;
+            color: var(--text-3);
+        }
+        .user-preview .user-info .user-id {
+            font-size: 0.75rem;
+            color: var(--text-3);
+            font-family: var(--font-mono);
+        }
+        .user-preview .user-plan {
+            margin-top: 0.3rem;
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .user-preview .user-plan .plan-badge {
+            font-size: 0.7rem;
+        }
+        .user-preview .user-plan .status-badge {
+            font-size: 0.7rem;
+        }
+        .user-suggestions {
+            position: absolute;
+            background: var(--surface);
+            border: 1px solid var(--line-strong);
+            border-radius: var(--r-md);
+            max-height: 200px;
+            overflow-y: auto;
+            width: 100%;
+            z-index: 1001;
+            display: none;
+            box-shadow: var(--shadow-card);
+        }
+        .user-suggestions.visible {
+            display: block;
+        }
+        .user-suggestions .suggestion-item {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.5rem 0.8rem;
+            cursor: pointer;
+            transition: background .15s;
+            border-bottom: 1px solid var(--line);
+        }
+        .user-suggestions .suggestion-item:last-child {
+            border-bottom: none;
+        }
+        .user-suggestions .suggestion-item .sugg-avatar {
+            width: 1.8rem;
+            height: 1.8rem;
+            border-radius: 50%;
+            flex-shrink: 0;
+            overflow: hidden;
+            background: linear-gradient(135deg, var(--accent), #2bd6c0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.7rem;
+            color: var(--accent-ink);
+        }
+        .user-suggestions .suggestion-item .sugg-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .user-suggestions .suggestion-item .sugg-name {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.85rem;
+        }
+        .user-suggestions .suggestion-item .sugg-id {
+            font-size: 0.7rem;
+            color: var(--text-3);
+            font-family: var(--font-mono);
+            margin-left: auto;
+        }
+        .input-wrapper {
+            position: relative;
+        }
+        .group-remove-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            min-width: 32px;
+            margin-left: auto;
+        }
+        .button-builder .row-with-remove {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+            width: 100%;
+        }
+        .button-builder .row-with-remove .row-fields {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+            flex: 1;
+        }
+        .button-builder .row-with-remove .remove-btn-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            min-width: 32px;
+        }
+        .button-builder .two-button-row {
+            display: flex;
+            flex-direction: column;
+            gap: 0 !important;
+            width: 100%;
+        }
+        .button-builder .two-button-row .btn-line {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+            width: 100%;
+            margin: 0 !important;
+            padding: 0 !important;
+            line-height: 1;
+        }
+        .button-builder .two-button-row .btn-line .row-fields {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+            flex: 1;
+            padding-right: 2.8rem;
+            margin: 0 !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+        }
+        .button-builder .two-button-row .btn-line .row-fields input,
+        .button-builder .two-button-row .btn-line .row-fields select {
+            flex: 1;
+            min-width: 80px;
+            margin: 0 !important;
+        }
+        .button-builder .two-button-row .btn-line .row-fields .btn-text { flex: 1.2; }
+        .button-builder .two-button-row .btn-line .row-fields .btn-url { flex: 1.5; }
+        .button-builder .two-button-row .btn-line .row-fields .btn-color { flex: 0.8; }
+        .button-builder .two-button-row .btn-line .row-fields .btn-emoji-id { flex: 0.8; }
+        .button-builder .two-button-row .remove-wrap {
+            display: flex;
+            justify-content: flex-end;
+            width: 100%;
+            padding: 0 !important;
+            margin: 0 !important;
+            line-height: 1;
+        }
+        .button-builder .two-button-row .remove-wrap .btn-remove-row {
+            font-size: 1rem;
+            padding: 0.1rem 0.5rem;
+            flex: 0 0 auto;
+            margin: 0 !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="loginScreen" class="login-container">
+        <div class="login-card">
+            <div class="brand">
+                <span class="brand__dot" aria-hidden="true"></span>
+                stream net
+                <span style="font-family:var(--font-body);font-size:0.7rem;font-weight:600;color:var(--accent);background:var(--surface-2);padding:0.1rem 0.7rem;border-radius:999px;border:1px solid var(--line);">
+                    Admin
+                </span>
+            </div>
+            <div class="form-group">
+                <label for="loginUsername">Логин</label>
+                <input type="text" id="loginUsername" placeholder="Введите логин" autocomplete="username">
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Пароль</label>
+                <input type="password" id="loginPassword" placeholder="Введите пароль" autocomplete="current-password">
+            </div>
+            <button class="btn btn-primary" onclick="login()">
+                <i class="fas fa-sign-in-alt"></i> Войти
+            </button>
+            <div id="loginError" class="login-error">Неверный логин или пароль</div>
+        </div>
+    </div>
+    <div id="mainApp" class="hidden">
+        <a href="#content" class="skip-link visually-hidden">Перейти к содержимому</a>
+        <header class="site-header shell">
+            <div class="site-header__row">
+                <h1 class="brand">
+                    <span class="brand__dot" aria-hidden="true"></span>
+                    stream net
+                    <span style="font-family:var(--font-body);font-size:0.7rem;font-weight:600;color:var(--accent);background:var(--surface-2);padding:0.1rem 0.7rem;border-radius:999px;border:1px solid var(--line);">
+                        Admin
+                    </span>
+                </h1>
+                <div class="header-actions">
+                    <button class="icon-btn" id="refreshBtn" title="Обновить данные" style="anchor-name: --anchor-btn; font-size:0.9rem;">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                    <button class="icon-btn" onclick="logout()" title="Выйти" style="font-size:0.9rem;">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                    <button class="icon-btn" id="moreBtn" popovertarget="moreMenu" title="Ещё" style="anchor-name: --anchor-btn; font-size:0.9rem;">
+                        <i class="fas fa-ellipsis-vertical"></i>
+                    </button>
+                    <div id="moreMenu" popover="auto" role="menu">
+                        <button class="popover-item" onclick="window.location.href='https://t.me/StreamNetAdmin'" role="menuitem">
+                            <i class="fas fa-headset"></i> Поддержка
+                        </button>
+                        <button class="popover-item" onclick="window.location.href='https://t.me/streamnetvpnbot'" role="menuitem">
+                            <i class="fab fa-telegram"></i> Бот
+                        </button>
+                        <button class="popover-item" onclick="window.location.href='https://streamnetvpn.top//'" role="menuitem">
+                            <i class="fas fa-globe"></i> Сайт
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <main id="content" tabindex="-1" class="shell" style="padding-block: 0.5rem 2rem;">
+            <section class="card reveal">
+                <h2 class="card__title"><i class="fas fa-chart-simple"></i> Статистика</h2>
+                <div class="grid-4" id="statsGrid">
+                    <div class="stat">
+                        <div class="stat__label"><i class="fas fa-users"></i> Пользователи</div>
+                        <div class="stat__value" id="totalUsers">—</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat__label"><i class="fas fa-user-plus"></i> За день</div>
+                        <div class="stat__value" id="todayUsers">—</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat__label"><i class="fas fa-crown"></i> Продажи</div>
+                        <div class="stat__value" id="totalSales">— <span class="currency">₽</span></div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat__label"><i class="fas fa-wallet"></i> За день</div>
+                        <div class="stat__value" id="todaySales">— <span class="currency">₽</span></div>
+                    </div>
+                </div>
+            </section>
+            <section class="card reveal">
+                <div class="tab-bar">
+                    <button class="tab-btn active" data-tab="users"><i class="fas fa-users"></i> Пользователи</button>
+                    <button class="tab-btn" data-tab="servers"><i class="fas fa-server"></i> Серверы</button>
+                    <button class="tab-btn" data-tab="prices"><i class="fas fa-tags"></i> Цены</button>
+                    <button class="tab-btn" data-tab="broadcast"><i class="fas fa-bullhorn"></i> Рассылка</button>
+                    <button class="tab-btn" data-tab="maintenance"><i class="fas fa-tools"></i> Тех. перерыв</button>
+                    <button class="tab-btn" data-tab="subscriptions"><i class="fas fa-crown"></i> Подписка</button>
+                </div>
+                <div class="tab-content active" id="tab-users">
+                    <div class="flex flex-between flex-wrap" style="gap:0.5rem;margin-bottom:0.75rem;">
+                        <h3 class="card__title" style="margin-bottom:0;font-size:0.95rem;">
+                            <i class="fas fa-table"></i> Список пользователей
+                        </h3>
+                        <span style="font-size:0.7rem;color:var(--text-3);font-family:var(--font-mono);">
+                            <i class="fas fa-clock"></i> <span id="userPageInfo">страница 1</span>
+                        </span>
+                    </div>
+                    <div class="search-box">
+                        <input type="text" id="searchUserId" placeholder="Поиск по ID пользователя..." style="font-family:var(--font-mono);">
+                        <button class="btn btn-primary" onclick="searchUserById()">
+                            <i class="fas fa-search"></i> Найти
+                        </button>
+                        <button class="btn btn-ghost" onclick="clearSearch()" id="clearSearchBtn" style="display:none;">
+                            <i class="fas fa-times"></i> Сбросить
+                        </button>
+                    </div>
+                    <div class="table-wrap" id="usersTableWrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Пользователь</th>
+                                    <th>Тариф</th>
+                                    <th>Статус</th>
+                                    <th>До</th>
+                                    <th style="text-align:right;">Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <tr><td colspan="5"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Загрузка...</p></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination" id="usersPagination"></div>
+                </div>
+                <div class="tab-content" id="tab-servers">
+                    <div class="servers-header" style="margin-bottom:0.75rem;">
+                        <h3 class="card__title" style="margin-bottom:0;font-size:0.95rem;">
+                            <i class="fas fa-server"></i> Управление серверами
+                            <span class="badge-count" id="serversCountBadge">0</span>
+                        </h3>
+                        <div class="servers-actions">
+                            <button class="btn btn-primary" onclick="openAddServerModal()" style="padding:0.3rem 0.7rem;font-size:0.7rem;">
+                                <i class="fas fa-plus"></i> Добавить
+                            </button>
+                            <button class="btn btn-danger" onclick="clearAllServers()" style="padding:0.3rem 0.7rem;font-size:0.7rem;">
+                                <i class="fas fa-trash"></i> Очистить
+                            </button>
+                        </div>
+                    </div>
+                    <div class="server-list" id="serversList">
+                        <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Загрузка серверов...</p></div>
+                    </div>
+                </div>
+                <div class="tab-content" id="tab-prices">
+                    <h3 class="card__title" style="margin-bottom:0.75rem;font-size:0.95rem;">
+                        <i class="fas fa-tags"></i> Управление ценами
+                    </h3>
+                    <div id="pricesContainer">
+                        <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Загрузка цен...</p></div>
+                    </div>
+                </div>
+                <div class="tab-content" id="tab-broadcast">
+                    <h3 class="card__title" style="margin-bottom:0.75rem;font-size:0.95rem;">
+                        <i class="fas fa-bullhorn"></i> Создать рассылку
+                    </h3>
+                    <div class="form-group">
+                        <label>Медиа (картинка или видео)</label>
+                        <div class="media-upload" id="mediaUpload">
+                            <i class="fas fa-cloud-upload-alt" style="font-size:2rem;display:block;margin-bottom:0.5rem;"></i>
+                            <span>Нажмите для загрузки картинки или видео</span>
+                            <div class="preview-container" id="mediaPreview"></div>
+                            <div class="remove-media" id="removeMedia" style="display:none;" onclick="removeMedia()">
+                                <i class="fas fa-times-circle"></i> Удалить
+                            </div>
+                        </div>
+                        <input type="file" id="mediaInput" accept="image/*,video/*" style="display:none;">
+                    </div>
+                    <div class="form-group">
+                        <label>Сообщение</label>
+                        <div class="format-toolbar">
+                            <button class="btn-editor" onclick="insertFormat('bold')"><b>B</b></button>
+                            <button class="btn-editor" onclick="insertFormat('italic')"><i>I</i></button>
+                            <button class="btn-editor" onclick="insertFormat('underline')"><u>U</u></button>
+                            <button class="btn-editor" onclick="insertFormat('strikethrough')"><s>S</s></button>
+                            <button class="btn-editor" onclick="insertFormat('spoiler')"><span style="background:#2a2a3a;padding:0.1rem 0.3rem;border-radius:4px;">SPOILER</span></button>
+                            <button class="btn-editor" onclick="insertFormat('code')"><code>code</code></button>
+                            <button class="btn-editor" onclick="insertFormat('blockquote')"><i class="fas fa-quote-right"></i></button>
+                            <button class="btn-editor" onclick="insertPremiumTemplate()">Premium emoji</button>
+                        </div>
+                        <textarea id="broadcastMessage" rows="6" placeholder="Введите текст сообщения..."></textarea>
+                    </div>
+                    <div class="premium-template" id="premiumTemplate">
+                        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.3rem;">
+                            <span><b>Шаблон для премиум эмодзи:</b></span>
+                            <button class="btn-sm primary" onclick="insertPremiumEmoji()"><i class="fas fa-paste"></i> Вставить</button>
+                        </div>
+                        <code id="premiumTemplateCode">&lt;tg-emoji emoji-id="ID_ЭМОДЗИ"&gt;🔔&lt;/tg-emoji&gt;</code>
+                        <div style="margin-top:0.3rem;font-size:0.7rem;color:var(--text-3);">
+                            <i class="fas fa-info-circle"></i> Замените <b>ID_ЭМОДЗИ</b> на ID премиум эмодзи и <b>🔔</b> на фолбек эмодзи
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Кнопки</label>
+                        <div id="buttonsContainer">
+                            <div class="button-builder" id="buttonRow_0">
+                                <div class="row-with-remove">
+                                    <div class="row-fields">
+                                        <input type="text" placeholder="Текст" class="btn-text" value="Кнопка">
+                                        <input type="text" placeholder="Ссылка" class="btn-url" value="https://t.me/streamnetvpnbot">
+                                        <select class="btn-color">
+                                            <option value="primary">Синяя</option>
+                                            <option value="success">Зелёная</option>
+                                            <option value="danger">Красная</option>
+                                            <option value="default">Стандартная</option>
+                                        </select>
+                                        <input type="text" placeholder="ID эмодзи" class="btn-emoji-id">
+                                    </div>
+                                    <div class="remove-btn-wrap">
+                                        <button class="btn-remove-row" onclick="removeButtonRow(0)" title="Удалить кнопку">✕</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.3rem;">
+                            <button class="btn btn-ghost" onclick="addButtonRow()">
+                                <i class="fas fa-plus"></i> Добавить кнопку
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Предпросмотр</label>
+                        <div class="broadcast-preview" id="broadcastPreviewCustom">
+                            <div id="previewMedia"></div>
+                            <div class="message-content" id="previewContentCustom">Введите сообщение для предпросмотра...</div>
+                            <div class="inline-button-row" id="previewButtonsCustom"></div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="sendBroadcast()" style="margin-top:0.5rem;">
+                        <i class="fas fa-paper-plane"></i> Отправить рассылку
+                    </button>
+                </div>
+                <div class="tab-content" id="tab-maintenance">
+                    <h3 class="card__title" style="margin-bottom:0.75rem;font-size:0.95rem;">
+                        <i class="fas fa-tools"></i> Технический перерыв
+                    </h3>
+                    <p style="font-size:0.8rem;color:var(--text-2);margin-bottom:0.75rem;">
+                        При включении все пользователи (кроме администратора) не смогут пользоваться ботом.
+                    </p>
+                    <div class="flex flex-between flex-wrap" style="gap:0.5rem;align-items:center;padding:0.5rem;background:var(--ink-850);border-radius:var(--r-sm);border:1px solid var(--line);">
+                        <div class="maintenance-status">
+                            <span style="font-weight:600;">Статус:</span>
+                            <span id="maintenanceStatus" style="font-size:0.8rem;font-weight:600;">
+                                <span class="status-circle off" id="statusCircle"></span>
+                                <span id="statusText">Выключен</span>
+                            </span>
+                        </div>
+                        <button class="btn btn-primary" id="maintenanceToggle" onclick="toggleMaintenance()">
+                            <i class="fas fa-play"></i> Включить
+                        </button>
+                    </div>
+                </div>
+                <div class="tab-content" id="tab-subscriptions">
+                    <h3 class="card__title" style="margin-bottom:0.75rem;font-size:0.95rem;">
+                        <i class="fas fa-crown"></i> Управление подписками
+                    </h3>
+                    <p style="font-size:0.8rem;color:var(--text-2);margin-bottom:0.75rem;">
+                        Выдать или забрать подписку пользователю
+                    </p>
+                    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+                        <button class="btn btn-primary" onclick="openGivePremiumModal()">
+                            <i class="fas fa-plus-circle"></i> Выдать Premium
+                        </button>
+                        <button class="btn btn-danger" onclick="openTakePremiumModal()">
+                            <i class="fas fa-minus-circle"></i> Забрать Premium
+                        </button>
+                    </div>
+                </div>
+            </section>
+            <footer class="footer">
+                <span><i class="far fa-copyright"></i> 2026 stream net VPN</span>
+                <div class="footer-links">
+                    <a href="https://telegra.ph/Polzovatelskoe-soglashenie-04-01-19" target="_blank">Пользовательское соглашение</a>
+                    <a href="https://telegra.ph/Politika-konfidencialnosti-04-01-26" target="_blank">Политика конфиденциальности</a>
+                </div>
+            </footer>
+        </main>
+    </div>
+    <div class="modal-overlay" id="addServerModal">
+        <div class="modal">
+            <div class="modal__title"><i class="fas fa-plus-circle"></i> Добавить сервер</div>
+            <div class="modal__body">
+                <div class="form-group">
+                    <label for="serverInput">Ссылки на серверы (каждая с новой строки)</label>
+                    <textarea id="serverInput" placeholder="vless://...&#10;vmess://...&#10;hysteria://...&#10;trojan://..."></textarea>
+                </div>
+                <input type="file" id="serverFileInput" accept=".txt" style="display:none;">
+                <button class="btn btn-ghost btn-block" onclick="document.getElementById('serverFileInput').click()">
+                    <i class="fas fa-upload"></i> Загрузить .txt файл
+                </button>
+            </div>
+            <div class="modal__actions">
+                <button class="btn btn-ghost" onclick="closeAddServerModal()">Отмена</button>
+                <button class="btn btn-primary" onclick="addServers()">
+                    <i class="fas fa-check"></i> Добавить
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="editPriceModal">
+        <div class="modal">
+            <div class="modal__title"><i class="fas fa-pen"></i> Изменить цену</div>
+            <div class="modal__body">
+                <div class="form-group">
+                    <label>Тариф</label>
+                    <input type="text" id="editPricePlan" readonly style="background:var(--ink-700);">
+                </div>
+                <div class="form-group">
+                    <label>Срок</label>
+                    <input type="text" id="editPriceDuration" readonly style="background:var(--ink-700);">
+                </div>
+                <div class="form-group">
+                    <label>Новая цена (₽)</label>
+                    <input type="number" id="editPriceInput" min="1" placeholder="Введите цену">
+                </div>
+            </div>
+            <div class="modal__actions">
+                <button class="btn btn-ghost" onclick="closeEditPriceModal()">Отмена</button>
+                <button class="btn btn-primary" onclick="savePrice()">
+                    <i class="fas fa-check"></i> Сохранить
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="givePremiumModal">
+        <div class="modal">
+            <div class="modal__title"><i class="fas fa-crown" style="color:var(--accent);"></i> Выдать Premium</div>
+            <div class="modal__body">
+                <div class="form-group">
+                    <label>ID пользователя</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="givePremiumUserId" placeholder="Введите ID пользователя" style="font-family:var(--font-mono);" oninput="onGiveUserInput()" onfocus="onGiveUserFocus()" onblur="setTimeout(() => hideGiveSuggestions(), 200)">
+                        <div class="user-suggestions" id="giveUserSuggestions"></div>
+                    </div>
+                </div>
+                <div id="givePremiumPreview" class="user-preview"></div>
+                <div class="form-group">
+                    <label>Количество дней</label>
+                    <input type="number" id="givePremiumDays" value="30" min="1">
+                </div>
+            </div>
+            <div class="modal__actions">
+                <button class="btn btn-ghost" onclick="closeGivePremiumModal()">Отмена</button>
+                <button class="btn btn-primary" onclick="confirmGivePremium()">
+                    <i class="fas fa-check"></i> Выдать
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="takePremiumModal">
+        <div class="modal">
+            <div class="modal__title"><i class="fas fa-minus-circle"></i> Забрать Premium</div>
+            <div class="modal__body">
+                <div class="form-group">
+                    <label>ID пользователя</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="takePremiumUserId" placeholder="Введите ID пользователя" oninput="onTakeUserInput()" onfocus="onTakeUserFocus()" onblur="setTimeout(() => hideTakeSuggestions(), 200)">
+                        <div class="user-suggestions" id="takeUserSuggestions"></div>
+                    </div>
+                </div>
+                <div id="takePremiumPreview" class="user-preview"></div>
+            </div>
+            <div class="modal__actions">
+                <button class="btn btn-ghost" onclick="closeTakePremiumModal()">Отмена</button>
+                <button class="btn btn-danger" onclick="confirmTakePremium()">
+                    <i class="fas fa-check"></i> Забрать
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="confirmBroadcastModal">
+        <div class="modal">
+            <div class="modal__title"><i class="fas fa-question-circle"></i> Подтверждение рассылки</div>
+            <div class="modal__body">
+                <p style="color:var(--text-2);">Вы уверены, что хотите разослать это сообщение <strong id="broadcastUserCount">0</strong> пользователям?</p>
+                <div style="margin-top:0.5rem;padding:0.5rem;background:var(--ink-850);border-radius:var(--r-sm);border:1px solid var(--line);max-height:200px;overflow-y:auto;font-size:0.8rem;">
+                    <div id="broadcastConfirmPreview">Предпросмотр сообщения...</div>
+                </div>
+            </div>
+            <div class="modal__actions">
+                <button class="btn btn-ghost" onclick="closeConfirmBroadcast()">Отмена</button>
+                <button class="btn btn-primary" onclick="confirmBroadcastSend()">
+                    <i class="fas fa-paper-plane"></i> Отправить
+                </button>
+            </div>
+        </div>
+    </div>
+    <div id="toast" class="toast" role="status" aria-live="polite">
+        <i class="fas fa-check-circle"></i>
+        <span id="toast-text"></span>
+    </div>
+    <script>
+        let toastTimer = null;
+        let editPriceData = null;
+        let allUsers = [];
+        let currentPage = 1;
+        let totalPages = 1;
+        const USERS_PER_PAGE = 10;
+        let adminToken = null;
+        let buttonCounter = 1;
+        let broadcastConfirmData = null;
+        let mediaData = null;
+        let searchQuery = null;
+        let totalUsersCount = 0;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            showLogin();
+            localStorage.removeItem('adminToken');
+            adminToken = null;
+            updateBroadcastPreview();
+            setupMediaUpload();
+        });
+
+        function setupMediaUpload() {
+            const upload = document.getElementById('mediaUpload');
+            const input = document.getElementById('mediaInput');
+            upload.addEventListener('click', function() {
+                input.click();
+            });
+            input.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    const dataUrl = ev.target.result;
+                    const isVideo = file.type.startsWith('video/');
+                    mediaData = {
+                        type: isVideo ? 'video' : 'image',
+                        data: dataUrl,
+                        file: file
+                    };
+                    const preview = document.getElementById('mediaPreview');
+                    if (isVideo) {
+                        preview.innerHTML = `<video controls src="${dataUrl}"></video>`;
+                    } else {
+                        preview.innerHTML = `<img src="${dataUrl}" alt="Preview">`;
+                    }
+                    document.getElementById('removeMedia').style.display = 'block';
+                    upload.classList.add('has-media');
+                    updateBroadcastPreview();
+                };
+                reader.readAsDataURL(file);
+            });
+            upload.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.style.borderColor = 'var(--accent)';
+            });
+            upload.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.style.borderColor = 'var(--line)';
+            });
+            upload.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.style.borderColor = 'var(--line)';
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
+                        const reader = new FileReader();
+                        reader.onload = function(ev) {
+                            const dataUrl = ev.target.result;
+                            const isVideo = file.type.startsWith('video/');
+                            mediaData = {
+                                type: isVideo ? 'video' : 'image',
+                                data: dataUrl,
+                                file: file
+                            };
+                            const preview = document.getElementById('mediaPreview');
+                            if (isVideo) {
+                                preview.innerHTML = `<video controls src="${dataUrl}"></video>`;
+                            } else {
+                                preview.innerHTML = `<img src="${dataUrl}" alt="Preview">`;
+                            }
+                            document.getElementById('removeMedia').style.display = 'block';
+                            upload.classList.add('has-media');
+                            updateBroadcastPreview();
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                }
+            });
+        }
+
+        function removeMedia() {
+            mediaData = null;
+            document.getElementById('mediaPreview').innerHTML = '';
+            document.getElementById('removeMedia').style.display = 'none';
+            document.getElementById('mediaUpload').classList.remove('has-media');
+            document.getElementById('mediaInput').value = '';
+            updateBroadcastPreview();
+        }
+
+        function showLogin() {
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('mainApp').classList.add('hidden');
+        }
+
+        function showApp() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainApp').classList.remove('hidden');
+            fetchData(1);
+            fetchServers();
+            fetchPrices();
+            updateMaintenanceStatus();
+        }
+
+        async function login() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            const errorEl = document.getElementById('loginError');
+            if (!username || !password) {
+                errorEl.textContent = 'Введите логин и пароль';
+                errorEl.classList.add('show');
+                return;
+            }
+            try {
+                const resp = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    adminToken = data.token;
+                    localStorage.setItem('adminToken', data.token);
+                    errorEl.classList.remove('show');
+                    document.getElementById('loginUsername').value = '';
+                    document.getElementById('loginPassword').value = '';
+                    showApp();
+                } else {
+                    errorEl.textContent = data.error || 'Неверный логин или пароль';
+                    errorEl.classList.add('show');
+                }
+            } catch (err) {
+                errorEl.textContent = 'Ошибка соединения';
+                errorEl.classList.add('show');
+            }
+        }
+
+        function logout() {
+            adminToken = null;
+            localStorage.removeItem('adminToken');
+            showLogin();
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('loginError').classList.remove('show');
+        }
+
+        document.getElementById('loginPassword').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') login();
+        });
+        document.getElementById('loginUsername').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') document.getElementById('loginPassword').focus();
+        });
+
+        async function searchUserById() {
+            const input = document.getElementById('searchUserId');
+            const query = input.value.trim();
+            if (!query) {
+                showToast('Введите ID пользователя', true);
+                return;
+            }
+            if (!/^\d+$/.test(query)) {
+                showToast('Введите корректный числовой ID', true);
+                return;
+            }
+            
+            const userId = parseInt(query);
+            if (isNaN(userId)) {
+                showToast('Введите корректный ID', true);
+                return;
+            }
+
+            try {
+                const resp = await apiFetch(`/api/admin/user/${userId}`);
+                if (resp.ok) {
+                    const user = await resp.json();
+                    if (user && user.user_id) {
+                        renderSearchResult(user, query);
+                        document.getElementById('clearSearchBtn').style.display = 'inline-flex';
+                        searchQuery = query;
+                    } else {
+                        showToast(`Пользователь ${userId} не найден`, true);
+                    }
+                } else {
+                    if (resp.status === 404) {
+                        showToast(`Пользователь ${userId} не найден`, true);
+                    } else {
+                        showToast('Ошибка при поиске пользователя', true);
+                    }
+                }
+            } catch (err) {
+                if (err.message !== 'Unauthorized') {
+                    showToast('Ошибка соединения', true);
+                }
+            }
+        }
+
+        function renderSearchResult(user, query) {
+            const tbody = document.getElementById('usersTableBody');
+            document.getElementById('userPageInfo').textContent = `результат поиска по ID "${query}"`;
+            document.getElementById('usersPagination').innerHTML = '';
+
+            const avatarLetter = (user.first_name || 'U')[0].toUpperCase();
+            const banBtn = user.is_banned ?
+                `<button class="btn-sm success" onclick="unbanUser(${user.user_id})"><i class="fas fa-unlock"></i> Разбан</button>` :
+                `<button class="btn-sm danger" onclick="banUser(${user.user_id})"><i class="fas fa-ban"></i> Бан</button>`;
+            const usernameDisplay = user.username ? `<div class="user-username">@${user.username}</div>` : '';
+            
+            tbody.innerHTML = `
+                <tr class="search-result-highlight">
+                    <td>
+                        <div class="user-cell">
+                            <div class="user-avatar" id="avatar-${user.user_id}" data-letter="${avatarLetter}">
+                                <span class="fallback">${avatarLetter}</span>
+                            </div>
+                            <div>
+                                <div class="user-name">${user.first_name || 'Unknown'}</div>
+                                ${usernameDisplay}
+                                <div class="user-id">ID: ${user.user_id}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="plan-badge ${getPlanClass(user.plan)}">${getPlanLabel(user.plan)}</span></td>
+                    <td><span class="status-badge ${getStatusClass(user.is_active, user.is_banned)}">${getStatusLabel(user.is_active, user.is_banned)}</span></td>
+                    <td>${formatDate(user.subscription_end)}</td>
+                    <td style="text-align:right;"><div class="actions">${banBtn}</div></td>
+                </tr>
+            `;
+
+            const avatarEl = document.getElementById(`avatar-${user.user_id}`);
+            if (avatarEl) {
+                fetchAvatar(user.user_id, avatarEl);
+            }
+        }
+
+        function clearSearch() {
+            searchQuery = null;
+            document.getElementById('searchUserId').value = '';
+            document.getElementById('clearSearchBtn').style.display = 'none';
+            fetchData(currentPage);
+        }
+
+        document.getElementById('searchUserId').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') searchUserById();
+        });
+
+        async function apiFetch(url, options = {}) {
+            if (!adminToken) {
+                showLogin();
+                throw new Error('Unauthorized');
+            }
+            const headers = {
+                'Content-Type': 'application/json',
+                'X-Admin-Token': adminToken,
+                ...options.headers
+            };
+            const resp = await fetch(url, { ...options, headers });
+            if (resp.status === 401) {
+                adminToken = null;
+                localStorage.removeItem('adminToken');
+                showLogin();
+                throw new Error('Unauthorized');
+            }
+            return resp;
+        }
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastText = document.getElementById('toast-text');
+            toast.className = 'toast' + (isError ? ' error' : '');
+            toastText.textContent = message;
+            toast.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById('tab-' + this.dataset.tab).classList.add('active');
+                if (this.dataset.tab === 'servers') fetchServers();
+                if (this.dataset.tab === 'prices') fetchPrices();
+                if (this.dataset.tab === 'maintenance') updateMaintenanceStatus();
+            });
+        });
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '—';
+            try {
+                const d = new Date(dateStr);
+                const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+                    'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
+                ];
+                return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}г.`;
+            } catch { return dateStr; }
+        }
+
+        function getPlanLabel(p) {
+            const map = { free: 'Free', premium: 'Premium' };
+            return map[p] || 'Free';
+        }
+
+        function getPlanClass(p) { return p || 'free'; }
+
+        function getStatusClass(active, banned) {
+            if (banned) return 'banned';
+            return active ? 'active' : 'inactive';
+        }
+
+        function getStatusLabel(active, banned) {
+            if (banned) return 'Забанен';
+            return active ? 'Активен' : 'Истекла';
+        }
+
+        async function fetchAvatar(userId, element) {
+            try {
+                const resp = await fetch(`/api/admin/user/${userId}/avatar`, {
+                    headers: { 'X-Admin-Token': adminToken }
+                });
+                if (resp.ok) {
+                    const blob = await resp.blob();
+                    if (blob.size > 0) {
+                        const url = URL.createObjectURL(blob);
+                        element.innerHTML = `<img src="${url}" alt="">`;
+                        return true;
+                    }
+                }
+                return false;
+            } catch { return false; }
+        }
+
+        async function fetchUserPreview(userId) {
+            try {
+                const resp = await apiFetch(`/api/admin/user/${userId}`);
+                if (resp.ok) {
+                    return await resp.json();
+                }
+                return null;
+            } catch {
+                return null;
+            }
+        }
+
+        function renderUserPreview(container, user) {
+            const avatarLetter = (user.first_name || 'U')[0].toUpperCase();
+            const usernameDisplay = user.username ? `<div class="user-username">@${user.username}</div>` : '';
+            container.innerHTML = `
+                <div class="user-cell">
+                    <div class="user-avatar" id="preview-avatar-${user.user_id}" data-letter="${avatarLetter}">
+                        <span class="fallback">${avatarLetter}</span>
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name">${user.first_name || 'Unknown'}</div>
+                        ${usernameDisplay}
+                        <div class="user-id">ID: ${user.user_id}</div>
+                    </div>
+                </div>
+                <div class="user-plan">
+                    <span class="plan-badge ${getPlanClass(user.plan)}">${getPlanLabel(user.plan)}</span>
+                    <span class="status-badge ${getStatusClass(user.is_active, user.is_banned)}">${getStatusLabel(user.is_active, user.is_banned)}</span>
+                    <span style="font-size:0.75rem;color:var(--text-3);">До: ${formatDate(user.subscription_end)}</span>
+                </div>
+            `;
+            container.classList.add('visible');
+            const avatarEl = document.getElementById(`preview-avatar-${user.user_id}`);
+            if (avatarEl) {
+                fetchAvatar(user.user_id, avatarEl).then(hasAvatar => {
+                    if (!hasAvatar) {
+                        avatarEl.innerHTML = `<span class="fallback">${avatarLetter}</span>`;
+                    }
+                });
+            }
+        }
+
+        function renderUsersPage(page, totalPages) {
+            if (page < 1) page = 1;
+            if (page > totalPages) page = totalPages;
+            currentPage = page;
+            const tbody = document.getElementById('usersTableBody');
+            document.getElementById('userPageInfo').textContent = `страница ${page} из ${totalPages || 1}`;
+
+            if (allUsers.length === 0 && totalUsersCount === 0) {
+                tbody.innerHTML =
+                    `<tr><td colspan="5"><div class="empty-state"><i class="fas fa-inbox"></i><p>Пользователей пока нет</p></div></td></tr>`;
+                document.getElementById('usersPagination').innerHTML = '';
+                return;
+            }
+
+            if (allUsers.length === 0 && totalUsersCount > 0) {
+                tbody.innerHTML =
+                    `<tr><td colspan="5"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Загрузка пользователей...</p></div></td></tr>`;
+                document.getElementById('usersPagination').innerHTML = '';
+                return;
+            }
+
+            let rows = '';
+            allUsers.forEach(u => {
+                const avatarLetter = (u.first_name || 'U')[0].toUpperCase();
+                const banBtn = u.is_banned ?
+                    `<button class="btn-sm success" onclick="unbanUser(${u.user_id})"><i class="fas fa-unlock"></i> Разбан</button>` :
+                    `<button class="btn-sm danger" onclick="banUser(${u.user_id})"><i class="fas fa-ban"></i> Бан</button>`;
+                const usernameDisplay = u.username ? `<div class="user-username">@${u.username}</div>` : '';
+                rows += `
+                    <tr>
+                        <td>
+                            <div class="user-cell">
+                                <div class="user-avatar" id="avatar-${u.user_id}" data-letter="${avatarLetter}">
+                                    <span class="fallback">${avatarLetter}</span>
+                                </div>
+                                <div>
+                                    <div class="user-name">${u.first_name || 'Unknown'}</div>
+                                    ${usernameDisplay}
+                                    <div class="user-id">ID: ${u.user_id}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="plan-badge ${getPlanClass(u.plan)}">${getPlanLabel(u.plan)}</span></td>
+                        <td><span class="status-badge ${getStatusClass(u.is_active, u.is_banned)}">${getStatusLabel(u.is_active, u.is_banned)}</span></td>
+                        <td>${formatDate(u.subscription_end)}</td>
+                        <td style="text-align:right;"><div class="actions">${banBtn}</div></td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = rows;
+
+            allUsers.forEach(async (u) => {
+                const avatarEl = document.getElementById(`avatar-${u.user_id}`);
+                if (!avatarEl) return;
+                const letter = avatarEl.dataset.letter || 'U';
+                const hasAvatar = await fetchAvatar(u.user_id, avatarEl);
+                if (!hasAvatar) {
+                    avatarEl.innerHTML = `<span class="fallback">${letter}</span>`;
+                }
+            });
+
+            let paginationHtml = '';
+            paginationHtml +=
+                `<button onclick="goToPage(${page - 1})" ${page <= 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>`;
+            const maxVisible = 5;
+            let startPage = Math.max(1, page - Math.floor(maxVisible / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+            if (endPage - startPage < maxVisible - 1) startPage = Math.max(1, endPage - maxVisible + 1);
+            if (startPage > 1) {
+                paginationHtml += `<button onclick="goToPage(1)">1</button>`;
+                if (startPage > 2) paginationHtml += `<span class="info">…</span>`;
+            }
+            for (let i = startPage; i <= endPage; i++) {
+                paginationHtml +=
+                    `<button onclick="goToPage(${i})" class="${i === page ? 'active' : ''}">${i}</button>`;
+            }
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) paginationHtml += `<span class="info">…</span>`;
+                paginationHtml += `<button onclick="goToPage(${totalPages})">${totalPages}</button>`;
+            }
+            paginationHtml +=
+                `<button onclick="goToPage(${page + 1})" ${page >= totalPages ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
+            document.getElementById('usersPagination').innerHTML = paginationHtml;
+        }
+
+        function goToPage(page) {
+            if (page < 1 || page > totalPages) return;
+            if (searchQuery) {
+                clearSearch();
+                return;
+            }
+            fetchData(page);
+            document.getElementById('usersTableWrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        async function fetchData(page = 1) {
+            const refreshBtn = document.getElementById('refreshBtn');
+            refreshBtn.classList.add('refreshing');
+            try {
+                const resp = await apiFetch(`/api/admin/stats?page=${page}&per_page=${USERS_PER_PAGE}`);
+                if (!resp.ok) throw new Error('Failed to fetch stats');
+                const data = await resp.json();
+                document.getElementById('totalUsers').textContent = data.total_users || 0;
+                document.getElementById('todayUsers').textContent = data.today_users || 0;
+                document.getElementById('totalSales').innerHTML = (data.total_sales || 0) + ' <span class="currency">₽</span>';
+                document.getElementById('todaySales').innerHTML = (data.today_sales || 0) + ' <span class="currency">₽</span>';
+
+                totalUsersCount = data.total_users || 0;
+                allUsers = data.users || [];
+                totalPages = data.total_pages || 1;
+                
+                if (page > totalPages) page = totalPages;
+                currentPage = page;
+                
+                renderUsersPage(page, totalPages);
+            } catch (err) {
+                if (err.message !== 'Unauthorized') {
+                    console.error(err);
+                    document.getElementById('usersTableBody').innerHTML =
+                        `<tr><td colspan="5"><div class="empty-state"><i class="fas fa-triangle-exclamation" style="color:var(--danger);"></i><p>Ошибка загрузки</p></div></td></tr>`;
+                }
+            } finally {
+                refreshBtn.classList.remove('refreshing');
+            }
+        }
+
+        async function banUser(id) {
+            if (!confirm(`Забанить пользователя ${id}?`)) return;
+            try {
+                const r = await apiFetch('/api/admin/ban', { method: 'POST', body: JSON.stringify({ user_id: id }) });
+                if (r.ok) { await fetchData(currentPage);
+                    showToast('Пользователь забанен'); } else showToast('Ошибка', true);
+            } catch (err) { if (err.message !== 'Unauthorized') showToast('Ошибка сети', true); }
+        }
+
+        async function unbanUser(id) {
+            if (!confirm(`Разбанить пользователя ${id}?`)) return;
+            try {
+                const r = await apiFetch('/api/admin/unban', { method: 'POST', body: JSON.stringify({ user_id: id }) });
+                if (r.ok) { await fetchData(currentPage);
+                    showToast('Пользователь разбанен'); } else showToast('Ошибка', true);
+            } catch (err) { if (err.message !== 'Unauthorized') showToast('Ошибка сети', true); }
+        }
+
+        async function fetchServers() {
+            try {
+                const r = await apiFetch('/api/admin/servers');
+                if (!r.ok) throw new Error();
+                const data = await r.json();
+                document.getElementById('serversCountBadge').textContent = data.servers ? data.servers.length : 0;
+                const container = document.getElementById('serversList');
+                if (!data.servers || data.servers.length === 0) {
+                    container.innerHTML = `<div class="empty-state"><i class="fas fa-server"></i><p>Серверы не добавлены</p></div>`;
+                    return;
+                }
+                container.innerHTML = data.servers.map(s => `
+                    <div class="server-item">
+                        <span class="server-name">${s.id}. ${s.name}</span>
+                        <div class="server-actions">
+                            <button class="btn-sm danger" onclick="removeServer(${s.id})"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                if (err.message !== 'Unauthorized') {
+                    document.getElementById('serversList').innerHTML =
+                        `<div class="empty-state"><i class="fas fa-triangle-exclamation" style="color:var(--danger);"></i><p>Ошибка загрузки</p></div>`;
+                }
+            }
+        }
+
+        function openAddServerModal() {
+            document.getElementById('addServerModal').classList.add('active');
+            document.getElementById('serverInput').value = '';
+        }
+
+        function closeAddServerModal() {
+            document.getElementById('addServerModal').classList.remove('active');
+        }
+
+        document.getElementById('serverFileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                document.getElementById('serverInput').value = ev.target.result;
+                showToast('Файл загружен');
+            };
+            reader.readAsText(file);
+            this.value = '';
+        });
+
+        async function addServers() {
+            const text = document.getElementById('serverInput').value.trim();
+            if (!text) { showToast('Введите ссылки на серверы', true); return; }
+            const lines = text.split('\n').filter(l => l.trim());
+            if (lines.length === 0) { showToast('Введите ссылки на серверы', true); return; }
+            try {
+                const r = await apiFetch('/api/admin/servers/add', {
+                    method: 'POST',
+                    body: JSON.stringify({ servers: lines })
+                });
+                if (r.ok) {
+                    closeAddServerModal();
+                    await fetchServers();
+                    showToast(`Добавлено ${lines.length} серверов`);
+                } else {
+                    showToast('Ошибка добавления', true);
+                }
+            } catch (err) { if (err.message !== 'Unauthorized') showToast('Ошибка сети', true); }
+        }
+
+        async function removeServer(id) {
+            if (!confirm(`Удалить сервер ${id}?`)) return;
+            try {
+                const r = await apiFetch('/api/admin/servers/remove', {
+                    method: 'POST',
+                    body: JSON.stringify({ server_id: id })
+                });
+                if (r.ok) {
+                    await fetchServers();
+                    showToast('Сервер удалён');
+                } else {
+                    showToast('Ошибка удаления', true);
+                }
+            } catch (err) { if (err.message !== 'Unauthorized') showToast('Ошибка сети', true); }
+        }
+
+        async function clearAllServers() {
+            if (!confirm('Очистить все серверы?')) return;
+            try {
+                const r = await apiFetch('/api/admin/servers/clear', { method: 'POST' });
+                if (r.ok) {
+                    await fetchServers();
+                    showToast('Все серверы очищены');
+                } else {
+                    showToast('Ошибка очистки', true);
+                }
+            } catch (err) { if (err.message !== 'Unauthorized') showToast('Ошибка сети', true); }
+        }
+
+        const DURATION_LABELS = { month: '1 месяц', '3months': '3 месяца', '6months': '6 месяцев' };
+        const PLAN_LABELS = { premium: 'Premium' };
+        const DURATION_ORDER = ['month', '3months', '6months'];
+
+        async function fetchPrices() {
+            try {
+                const r = await apiFetch('/api/admin/prices');
+                if (!r.ok) throw new Error();
+                const data = await r.json();
+                const container = document.getElementById('pricesContainer');
+                if (!data.prices || Object.keys(data.prices).length === 0) {
+                    container.innerHTML = `<div class="empty-state"><i class="fas fa-tags"></i><p>Цены не найдены</p></div>`;
+                    return;
+                }
+                let html = '<div class="grid-2">';
+                for (const [plan, durations] of Object.entries(data.prices)) {
+                    html +=
+                    `<div style="border:1px solid var(--line);border-radius:var(--r-md);padding:0.75rem;background:color-mix(in oklab,var(--ink-850) 50%,transparent);">
+                        <div style="font-weight:700;color:var(--text);margin-bottom:0.5rem;font-family:var(--font-mono);">${PLAN_LABELS[plan] || plan}</div>`;
+                    for (const dur of DURATION_ORDER) {
+                        if (durations[dur] !== undefined) {
+                            html += `<div class="flex flex-between" style="padding:0.2rem 0;border-bottom:1px solid var(--line);">
+                                <span style="color:var(--text-2);font-size:0.8rem;">${DURATION_LABELS[dur] || dur}</span>
+                                <span style="font-family:var(--font-mono);font-weight:600;color:var(--text);">${durations[dur]} ₽</span>
+                                <button class="btn-sm primary" onclick="openEditPriceModal('${plan}','${dur}')"><i class="fas fa-pen"></i></button>
+                            </div>`;
+                        }
+                    }
+                    html += '</div>';
+                }
+                html += '</div>';
+                container.innerHTML = html;
+            } catch (err) {
+                if (err.message !== 'Unauthorized') {
+                    document.getElementById('pricesContainer').innerHTML =
+                        `<div class="empty-state"><i class="fas fa-triangle-exclamation" style="color:var(--danger);"></i><p>Ошибка загрузки цен</p></div>`;
+                }
+            }
+        }
+
+        function openEditPriceModal(plan, duration) {
+            editPriceData = { plan, duration };
+            document.getElementById('editPricePlan').value = PLAN_LABELS[plan] || plan;
+            document.getElementById('editPriceDuration').value = DURATION_LABELS[duration] || duration;
+            document.getElementById('editPriceInput').value = '';
+            document.getElementById('editPriceModal').classList.add('active');
+        }
+
+        function closeEditPriceModal() {
+            document.getElementById('editPriceModal').classList.remove('active');
+            editPriceData = null;
+        }
+
+        async function savePrice() {
+            if (!editPriceData) return;
+            const price = parseInt(document.getElementById('editPriceInput').value);
+            if (!price || price < 1) { showToast('Введите корректную цену', true); return; }
+            try {
+                const r = await apiFetch('/api/admin/prices/set', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        plan_key: editPriceData.plan,
+                        duration_key: editPriceData.duration,
+                        price: price
+                    })
+                });
+                if (r.ok) {
+                    closeEditPriceModal();
+                    await fetchPrices();
+                    showToast('Цена обновлена');
+                } else {
+                    showToast('Ошибка сохранения', true);
+                }
+            } catch (err) { if (err.message !== 'Unauthorized') showToast('Ошибка сети', true); }
+        }
+
+        function insertFormat(type) {
+            const textarea = document.getElementById('broadcastMessage');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            let before = text.substring(0, start);
+            let selected = text.substring(start, end);
+            let after = text.substring(end);
+            const tags = {
+                bold: ['<b>', '</b>'],
+                italic: ['<i>', '</i>'],
+                underline: ['<u>', '</u>'],
+                strikethrough: ['<s>', '</s>'],
+                spoiler: ['<tg-spoiler>', '</tg-spoiler>'],
+                code: ['<code>', '</code>'],
+                blockquote: ['<blockquote>', '</blockquote>']
+            };
+            if (selected) {
+                textarea.value = before + tags[type][0] + selected + tags[type][1] + after;
+            } else {
+                textarea.value = before + tags[type][0] + tags[type][1] + after;
+                textarea.selectionStart = start + tags[type][0].length;
+                textarea.selectionEnd = start + tags[type][0].length;
+            }
+            textarea.focus();
+            updateBroadcastPreview();
+        }
+
+        function insertPremiumTemplate() {
+            const template = document.getElementById('premiumTemplate');
+            template.classList.toggle('show');
+            if (template.classList.contains('show')) {
+                document.getElementById('premiumTemplateCode').textContent = '<tg-emoji emoji-id="ID_ЭМОДЗИ">🔔</tg-emoji>';
+            }
+        }
+
+        function insertPremiumEmoji() {
+            const textarea = document.getElementById('broadcastMessage');
+            const start = textarea.selectionStart;
+            const text = textarea.value;
+            const emojiTag = '<tg-emoji emoji-id="ID_ЭМОДЗИ">🔔</tg-emoji>';
+            textarea.value = text.substring(0, start) + emojiTag + text.substring(start);
+            textarea.focus();
+            updateBroadcastPreview();
+            document.getElementById('premiumTemplate').classList.remove('show');
+        }
+
+        function addButtonRow() {
+            const container = document.getElementById('buttonsContainer');
+            const id = buttonCounter++;
+            const row = document.createElement('div');
+            row.className = 'button-builder';
+            row.id = `buttonRow_${id}`;
+            row.innerHTML = `
+                <div class="row-with-remove">
+                    <div class="row-fields">
+                        <input type="text" placeholder="Текст" class="btn-text" value="Кнопка ${id+1}">
+                        <input type="text" placeholder="Ссылка" class="btn-url" value="https://t.me/streamnetvpnbot">
+                        <select class="btn-color">
+                            <option value="primary">Синяя</option>
+                            <option value="success">Зелёная</option>
+                            <option value="danger">Красная</option>
+                            <option value="default">Стандартная</option>
+                        </select>
+                        <input type="text" placeholder="ID эмодзи" class="btn-emoji-id">
+                    </div>
+                    <div class="remove-btn-wrap">
+                        <button class="btn-remove-row" onclick="removeButtonRow(${id})" title="Удалить кнопку">✕</button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(row);
+            updateBroadcastPreview();
+        }
+
+        function removeButtonRow(id) {
+            const row = document.getElementById(`buttonRow_${id}`);
+            if (row) {
+                row.remove();
+                updateBroadcastPreview();
+            }
+        }
+
+        function updateBroadcastPreview() {
+            const message = document.getElementById('broadcastMessage').value || 'Введите сообщение для предпросмотра...';
+            document.getElementById('previewContentCustom').innerHTML = message;
+            if (mediaData) {
+                const previewMedia = document.getElementById('previewMedia');
+                if (mediaData.type === 'video') {
+                    previewMedia.innerHTML = `<video controls class="media-preview" src="${mediaData.data}"></video>`;
+                } else {
+                    previewMedia.innerHTML = `<img class="media-preview" src="${mediaData.data}" alt="Preview">`;
+                }
+            } else {
+                document.getElementById('previewMedia').innerHTML = '';
+            }
+            const buttons = document.querySelectorAll('.button-builder');
+            const previewContainer = document.getElementById('previewButtonsCustom');
+            previewContainer.innerHTML = '';
+            const colorMap = {
+                primary: 'primary',
+                success: 'success',
+                danger: 'danger',
+                default: 'default'
+            };
+            if (buttons.length > 0) {
+                buttons.forEach((btn) => {
+                    const rowsWithRemove = btn.querySelectorAll('.row-with-remove');
+                    rowsWithRemove.forEach((row) => {
+                        const fields = row.querySelector('.row-fields');
+                        if (!fields) return;
+                        const textInputs = fields.querySelectorAll('.btn-text');
+                        const urlInputs = fields.querySelectorAll('.btn-url');
+                        const colorSelects = fields.querySelectorAll('.btn-color');
+                        const emojiInputs = fields.querySelectorAll('.btn-emoji-id');
+                        if (textInputs.length > 0) {
+                            const rowDiv = document.createElement('div');
+                            rowDiv.className = 'btn-row';
+                            textInputs.forEach((input, index) => {
+                                const text = input.value || 'Кнопка';
+                                const url = urlInputs[index]?.value || '#';
+                                const color = colorSelects[index]?.value || 'default';
+                                const emojiId = emojiInputs[index]?.value.trim() || '';
+                                let displayText = text;
+                                if (emojiId) {
+                                    displayText = `<tg-emoji emoji-id="${emojiId}">${text}</tg-emoji>`;
+                                }
+                                const buttonHtml =
+                                    `<a href="${url}" target="_blank" class="inline-button ${colorMap[color] || 'default'}">${displayText}</a>`;
+                                rowDiv.innerHTML += buttonHtml;
+                            });
+                            previewContainer.appendChild(rowDiv);
+                        }
+                    });
+
+                    const twoButtonRows = btn.querySelectorAll('.two-button-row');
+                    twoButtonRows.forEach((row) => {
+                        const btnLines = row.querySelectorAll('.btn-line');
+                        const rowDiv = document.createElement('div');
+                        rowDiv.className = 'btn-row';
+                        btnLines.forEach((line) => {
+                            const fields = line.querySelector('.row-fields');
+                            if (!fields) return;
+                            const textInputs = fields.querySelectorAll('.btn-text');
+                            const urlInputs = fields.querySelectorAll('.btn-url');
+                            const colorSelects = fields.querySelectorAll('.btn-color');
+                            const emojiInputs = fields.querySelectorAll('.btn-emoji-id');
+                            textInputs.forEach((input, index) => {
+                                const text = input.value || 'Кнопка';
+                                const url = urlInputs[index]?.value || '#';
+                                const color = colorSelects[index]?.value || 'default';
+                                const emojiId = emojiInputs[index]?.value.trim() || '';
+                                let displayText = text;
+                                if (emojiId) {
+                                    displayText = `<tg-emoji emoji-id="${emojiId}">${text}</tg-emoji>`;
+                                }
+                                const buttonHtml =
+                                    `<a href="${url}" target="_blank" class="inline-button ${colorMap[color] || 'default'}">${displayText}</a>`;
+                                rowDiv.innerHTML += buttonHtml;
+                            });
+                        });
+                        if (rowDiv.innerHTML) {
+                            previewContainer.appendChild(rowDiv);
+                        }
+                    });
+                });
+            }
+        }
+
+        document.addEventListener('input', function(e) {
+            if (e.target.closest('.button-builder') || e.target.id === 'broadcastMessage') {
+                updateBroadcastPreview();
+            }
+        });
+
+        async function sendBroadcast() {
+            if (!adminToken) { showLogin(); return; }
+            const msgText = document.getElementById('broadcastMessage').value.trim();
+            if (!msgText && !mediaData) { showToast('Введите текст или добавьте медиа', true); return; }
+            const buttons = [];
+            const buttonRows = document.querySelectorAll('.button-builder');
+            buttonRows.forEach(btn => {
+                const rowsWithRemove = btn.querySelectorAll('.row-with-remove');
+                rowsWithRemove.forEach(row => {
+                    const fields = row.querySelector('.row-fields');
+                    if (!fields) return;
+                    const textInputs = fields.querySelectorAll('.btn-text');
+                    const urlInputs = fields.querySelectorAll('.btn-url');
+                    const colorSelects = fields.querySelectorAll('.btn-color');
+                    const emojiInputs = fields.querySelectorAll('.btn-emoji-id');
+                    textInputs.forEach((input, index) => {
+                        const text = input.value.trim();
+                        const url = urlInputs[index]?.value.trim() || '';
+                        const color = colorSelects[index]?.value || 'default';
+                        const emojiId = emojiInputs[index]?.value.trim() || '';
+                        if (text && url) {
+                            buttons.push({ text, url, color, emoji_id: emojiId });
+                        }
+                    });
+                });
+
+                const twoButtonRows = btn.querySelectorAll('.two-button-row');
+                twoButtonRows.forEach(row => {
+                    const btnLines = row.querySelectorAll('.btn-line');
+                    btnLines.forEach(line => {
+                        const fields = line.querySelector('.row-fields');
+                        if (!fields) return;
+                        const textInputs = fields.querySelectorAll('.btn-text');
+                        const urlInputs = fields.querySelectorAll('.btn-url');
+                        const colorSelects = fields.querySelectorAll('.btn-color');
+                        const emojiInputs = fields.querySelectorAll('.btn-emoji-id');
+                        textInputs.forEach((input, index) => {
+                            const text = input.value.trim();
+                            const url = urlInputs[index]?.value.trim() || '';
+                            const color = colorSelects[index]?.value || 'default';
+                            const emojiId = emojiInputs[index]?.value.trim() || '';
+                            if (text && url) {
+                                buttons.push({ text, url, color, emoji_id: emojiId });
+                            }
+                        });
+                    });
+                });
+            });
+            const messageData = {
+                type: 'custom',
+                text: msgText,
+                buttons: buttons,
+                media: mediaData ? { type: mediaData.type, data: mediaData.data } : null
+            };
+            const userCount = totalUsersCount || (await (await apiFetch('/api/admin/stats')).json()).total_users || 0;
+            const previewEl = document.getElementById('broadcastConfirmPreview');
+            let previewHtml = messageData.text || 'Нет текста';
+            if (mediaData) {
+                previewHtml =
+                    `<i class="fas fa-${mediaData.type === 'video' ? 'video' : 'image'}"></i> Медиа: ${mediaData.type === 'video' ? 'Видео' : 'Картинка'}<br><br>` +
+                    previewHtml;
+            }
+            if (buttons.length > 0) {
+                previewHtml += '<br><br><b>Кнопки:</b><br>';
+                let rowIndex = 0;
+                buttonRows.forEach(btn => {
+                    const rowsWithRemove = btn.querySelectorAll('.row-with-remove');
+                    rowsWithRemove.forEach(row => {
+                        const fields = row.querySelector('.row-fields');
+                        if (!fields) return;
+                        const textInputs = fields.querySelectorAll('.btn-text');
+                        const urlInputs = fields.querySelectorAll('.btn-url');
+                        const colorSelects = fields.querySelectorAll('.btn-color');
+                        const emojiInputs = fields.querySelectorAll('.btn-emoji-id');
+                        const rowButtons = [];
+                        textInputs.forEach((input, index) => {
+                            const text = input.value.trim();
+                            const url = urlInputs[index]?.value.trim() || '';
+                            const color = colorSelects[index]?.value || 'default';
+                            const emojiId = emojiInputs[index]?.value.trim() || '';
+                            if (text && url) {
+                                rowButtons.push({ text, url, color, emoji_id: emojiId });
+                            }
+                        });
+                        if (rowButtons.length > 0) {
+                            const colorMap = { primary: 'Синяя', success: 'Зелёная', danger: 'Красная', default: 'Стандартная' };
+                            const buttonTexts = rowButtons.map(b =>
+                                `${b.text} → ${b.url} (${colorMap[b.color] || 'Стандартная'})${b.emoji_id ? ` [эмодзи ID: ${b.emoji_id}]` : ''}`
+                                ).join('  |  ');
+                            previewHtml += `Ряд ${rowIndex + 1}: ${buttonTexts}<br>`;
+                            rowIndex++;
+                        }
+                    });
+
+                    const twoButtonRows = btn.querySelectorAll('.two-button-row');
+                    twoButtonRows.forEach(row => {
+                        const btnLines = row.querySelectorAll('.btn-line');
+                        const rowButtons = [];
+                        btnLines.forEach(line => {
+                            const fields = line.querySelector('.row-fields');
+                            if (!fields) return;
+                            const textInputs = fields.querySelectorAll('.btn-text');
+                            const urlInputs = fields.querySelectorAll('.btn-url');
+                            const colorSelects = fields.querySelectorAll('.btn-color');
+                            const emojiInputs = fields.querySelectorAll('.btn-emoji-id');
+                            textInputs.forEach((input, index) => {
+                                const text = input.value.trim();
+                                const url = urlInputs[index]?.value.trim() || '';
+                                const color = colorSelects[index]?.value || 'default';
+                                const emojiId = emojiInputs[index]?.value.trim() || '';
+                                if (text && url) {
+                                    rowButtons.push({ text, url, color, emoji_id: emojiId });
+                                }
+                            });
+                        });
+                        if (rowButtons.length > 0) {
+                            const colorMap = { primary: 'Синяя', success: 'Зелёная', danger: 'Красная', default: 'Стандартная' };
+                            const buttonTexts = rowButtons.map(b =>
+                                `${b.text} → ${b.url} (${colorMap[b.color] || 'Стандартная'})${b.emoji_id ? ` [эмодзи ID: ${b.emoji_id}]` : ''}`
+                                ).join('  |  ');
+                            previewHtml += `Ряд ${rowIndex + 1}: ${buttonTexts}<br>`;
+                            rowIndex++;
+                        }
+                    });
+                });
+            }
+            previewEl.innerHTML = previewHtml;
+            document.getElementById('broadcastUserCount').textContent = userCount;
+            broadcastConfirmData = { messageData, userCount };
+            document.getElementById('confirmBroadcastModal').classList.add('active');
+        }
+
+        function closeConfirmBroadcast() {
+            document.getElementById('confirmBroadcastModal').classList.remove('active');
+            broadcastConfirmData = null;
+        }
+
+        async function confirmBroadcastSend() {
+            if (!broadcastConfirmData) return;
+            const { messageData } = broadcastConfirmData;
+            try {
+                const resp = await apiFetch('/api/admin/broadcast', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        type: 'custom',
+                        message_data: messageData
+                    })
+                });
+                if (resp.ok) {
+                    closeConfirmBroadcast();
+                    showToast('Рассылка отправлена!');
+                } else {
+                    const error = await resp.text();
+                    showToast('Ошибка: ' + error, true);
+                }
+            } catch (err) {
+                if (err.message !== 'Unauthorized') {
+                    showToast('Ошибка отправки', true);
+                }
+            }
+        }
+
+        function getFilteredUsers(query) {
+            if (!query) return [];
+            const q = query.toString();
+            return allUsers.filter(u => {
+                const idStr = String(u.user_id);
+                return idStr.startsWith(q);
+            }).slice(0, 10);
+        }
+
+        function renderSuggestions(container, users, inputId, onSelect) {
+            if (!users || users.length === 0) {
+                container.classList.remove('visible');
+                return;
+            }
+            container.innerHTML = '';
+            users.forEach(user => {
+                const item = document.createElement('div');
+                item.className = 'suggestion-item';
+                const avatarLetter = (user.first_name || 'U')[0].toUpperCase();
+                item.innerHTML = `
+                    <div class="sugg-avatar" id="sugg-avatar-${user.user_id}">
+                        <span class="fallback">${avatarLetter}</span>
+                    </div>
+                    <span class="sugg-name">${user.first_name || 'Unknown'}</span>
+                    ${user.username ? `<span style="font-size:0.7rem;color:var(--text-3);">@${user.username}</span>` : ''}
+                    <span class="sugg-id">${user.user_id}</span>
+                `;
+                item.addEventListener('click', function() {
+                    document.getElementById(inputId).value = user.user_id;
+                    container.classList.remove('visible');
+                    onSelect(user);
+                });
+                container.appendChild(item);
+                fetchAvatar(user.user_id, document.getElementById(`sugg-avatar-${user.user_id}`)).then(hasAvatar => {
+                    if (!hasAvatar) {
+                        const el = document.getElementById(`sugg-avatar-${user.user_id}`);
+                        if (el) el.innerHTML = `<span class="fallback">${avatarLetter}</span>`;
+                    }
+                });
+            });
+            container.classList.add('visible');
+        }
+
+        function onGiveUserInput() {
+            const input = document.getElementById('givePremiumUserId');
+            const query = input.value.trim();
+            const container = document.getElementById('giveUserSuggestions');
+            const users = getFilteredUsers(query);
+            renderSuggestions(container, users, 'givePremiumUserId', (user) => {
+                const previewContainer = document.getElementById('givePremiumPreview');
+                renderUserPreview(previewContainer, user);
+            });
+            if (!query) {
+                container.classList.remove('visible');
+                document.getElementById('givePremiumPreview').classList.remove('visible');
+                document.getElementById('givePremiumPreview').innerHTML = '';
+            }
+        }
+
+        function onGiveUserFocus() {
+            const input = document.getElementById('givePremiumUserId');
+            if (input.value.trim()) {
+                onGiveUserInput();
+            }
+        }
+
+        function hideGiveSuggestions() {
+            document.getElementById('giveUserSuggestions').classList.remove('visible');
+        }
+
+        function onTakeUserInput() {
+            const input = document.getElementById('takePremiumUserId');
+            const query = input.value.trim();
+            const container = document.getElementById('takeUserSuggestions');
+            const users = getFilteredUsers(query);
+            renderSuggestions(container, users, 'takePremiumUserId', (user) => {
+                const previewContainer = document.getElementById('takePremiumPreview');
+                renderUserPreview(previewContainer, user);
+            });
+            if (!query) {
+                container.classList.remove('visible');
+                document.getElementById('takePremiumPreview').classList.remove('visible');
+                document.getElementById('takePremiumPreview').innerHTML = '';
+            }
+        }
+
+        function onTakeUserFocus() {
+            const input = document.getElementById('takePremiumUserId');
+            if (input.value.trim()) {
+                onTakeUserInput();
+            }
+        }
+
+        function hideTakeSuggestions() {
+            document.getElementById('takeUserSuggestions').classList.remove('visible');
+        }
+
+        function openGivePremiumModal() {
+            document.getElementById('givePremiumUserId').value = '';
+            document.getElementById('givePremiumDays').value = '30';
+            document.getElementById('givePremiumPreview').classList.remove('visible');
+            document.getElementById('givePremiumPreview').innerHTML = '';
+            document.getElementById('giveUserSuggestions').classList.remove('visible');
+            document.getElementById('givePremiumModal').classList.add('active');
+        }
+
+        function closeGivePremiumModal() {
+            document.getElementById('givePremiumModal').classList.remove('active');
+        }
+
+        async function confirmGivePremium() {
+            const userId = document.getElementById('givePremiumUserId').value.trim();
+            const days = parseInt(document.getElementById('givePremiumDays').value);
+            if (!userId) { showToast('Введите ID пользователя', true); return; }
+            if (!days || days < 1) { showToast('Введите корректное количество дней', true); return; }
+            try {
+                const resp = await apiFetch('/api/admin/give_premium', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        user_id: parseInt(userId),
+                        days: days
+                    })
+                });
+                if (resp.ok) {
+                    closeGivePremiumModal();
+                    showToast(`Premium выдан пользователю ${userId}`);
+                } else {
+                    const error = await resp.json();
+                    showToast('Ошибка: ' + error.error, true);
+                }
+            } catch (err) {
+                if (err.message !== 'Unauthorized') {
+                    showToast('Ошибка отправки', true);
+                }
+            }
+        }
+
+        function openTakePremiumModal() {
+            document.getElementById('takePremiumUserId').value = '';
+            document.getElementById('takePremiumPreview').classList.remove('visible');
+            document.getElementById('takePremiumPreview').innerHTML = '';
+            document.getElementById('takeUserSuggestions').classList.remove('visible');
+            document.getElementById('takePremiumModal').classList.add('active');
+        }
+
+        function closeTakePremiumModal() {
+            document.getElementById('takePremiumModal').classList.remove('active');
+        }
+
+        async function confirmTakePremium() {
+            const userId = document.getElementById('takePremiumUserId').value.trim();
+            if (!userId) { showToast('Введите ID пользователя', true); return; }
+            try {
+                const resp = await apiFetch('/api/admin/take_premium', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        user_id: parseInt(userId)
+                    })
+                });
+                if (resp.ok) {
+                    closeTakePremiumModal();
+                    showToast(`Premium забран у пользователя ${userId}`);
+                } else {
+                    const error = await resp.json();
+                    showToast('Ошибка: ' + error.error, true);
+                }
+            } catch (err) {
+                if (err.message !== 'Unauthorized') {
+                    showToast('Ошибка отправки', true);
+                }
+            }
+        }
+
+        async function fetchMaintenanceStatus() {
+            try {
+                const resp = await apiFetch('/api/admin/maintenance');
+                if (resp.ok) {
+                    const data = await resp.json();
+                    return data.enabled;
+                }
+                return false;
+            } catch (err) {
+                return false;
+            }
+        }
+
+        async function updateMaintenanceStatus() {
+            try {
+                const enabled = await fetchMaintenanceStatus();
+                const btn = document.getElementById('maintenanceToggle');
+                const circle = document.getElementById('statusCircle');
+                const textEl = document.getElementById('statusText');
+                if (enabled) {
+                    btn.innerHTML = '<i class="fas fa-pause"></i> Выключить';
+                    btn.className = 'btn btn-danger';
+                    circle.className = 'status-circle on';
+                    textEl.textContent = 'Включен';
+                } else {
+                    btn.innerHTML = '<i class="fas fa-play"></i> Включить';
+                    btn.className = 'btn btn-primary';
+                    circle.className = 'status-circle off';
+                    textEl.textContent = 'Выключен';
+                }
+            } catch (err) {
+                const btn = document.getElementById('maintenanceToggle');
+                const circle = document.getElementById('statusCircle');
+                const textEl = document.getElementById('statusText');
+                btn.innerHTML = '<i class="fas fa-play"></i> Включить';
+                btn.className = 'btn btn-primary';
+                circle.className = 'status-circle off';
+                textEl.textContent = 'Выключен';
+            }
+        }
+
+        async function toggleMaintenance() {
+            const btn = document.getElementById('maintenanceToggle');
+            try {
+                const currentStatus = await fetchMaintenanceStatus();
+                const newStatus = !currentStatus;
+                const resp = await apiFetch('/api/admin/maintenance', {
+                    method: 'POST',
+                    body: JSON.stringify({ enabled: newStatus })
+                });
+                if (resp.ok) {
+                    await updateMaintenanceStatus();
+                    if (newStatus) {
+                        showToast('Технический перерыв включен');
+                    } else {
+                        showToast('Технический перерыв выключен');
+                    }
+                }
+            } catch (err) {
+                if (err.message !== 'Unauthorized') {
+                    showToast('Ошибка переключения режима', true);
+                }
+            }
+        }
+
+        const savedToken = localStorage.getItem('adminToken');
+        if (savedToken) {
+            adminToken = savedToken;
+            showApp();
+            fetchData(1);
+            fetchServers();
+            fetchPrices();
+            updateMaintenanceStatus();
+            setInterval(() => fetchData(currentPage), 30000);
+            setInterval(fetchServers, 60000);
+        }
+
+        document.getElementById('refreshBtn').addEventListener('click', () => {
+            if (!adminToken) { showLogin(); return; }
+            fetchData(currentPage);
+            if (document.querySelector('.tab-btn[data-tab="servers"].active')) fetchServers();
+            if (document.querySelector('.tab-btn[data-tab="prices"].active')) fetchPrices();
+            updateMaintenanceStatus();
+        });
+
+        document.querySelectorAll('.modal-overlay').forEach(el => {
+            el.addEventListener('click', function(e) {
+                if (e.target === this) this.classList.remove('active');
+            });
+        });
+
+        if (window.Telegram && window.Telegram.WebApp) {
+            Telegram.WebApp.ready();
+            try {
+                Telegram.WebApp.expand();
+            } catch (err) {
+                console.log('Не удалось развернуть приложение');
+            }
+        }
+
+        setTimeout(() => {
+            document.getElementById('loginUsername').focus();
+        }, 100);
+    </script>
+</body>
+</html>

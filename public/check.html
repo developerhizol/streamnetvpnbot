@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Подписка на спонсоров</title>
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <style>
+        :root {
+            color-scheme: dark;
+            --ink-900: #0d1117;
+            --ink-850: #11161d;
+            --ink-800: #161b22;
+            --ink-700: #1d242d;
+            --ink-600: #2b333d;
+            --signal: #5a8a94;
+            --signal-dim: #487079;
+            --paper: #e6edf3;
+            --paper-dim: #9aa7b4;
+            --paper-mute: #7a8694;
+            --danger: #ff6b6b;
+            --success: #4ad08a;
+            --bg: var(--ink-900);
+            --surface: var(--ink-800);
+            --surface-2: var(--ink-700);
+            --line: color-mix(in oklab, var(--paper) 10%, transparent);
+            --line-strong: color-mix(in oklab, var(--signal) 35%, transparent);
+            --text: var(--paper);
+            --text-2: var(--paper-dim);
+            --text-3: var(--paper-mute);
+            --accent: var(--signal);
+            --accent-ink: #06181c;
+            --font-body: 'Manrope', system-ui, sans-serif;
+            --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+            --r-sm: 0.5rem;
+            --r-md: 0.875rem;
+            --r-lg: 1.25rem;
+            --shadow-card: 0 1px 0 color-mix(in oklab, var(--paper) 6%, transparent) inset, 0 20px 40px -24px rgba(0, 0, 0, 0.8);
+            --glow: 0 0 0 1px color-mix(in oklab, var(--signal) 40%, transparent), 0 0 28px -6px color-mix(in oklab, var(--signal) 55%, transparent);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100dvh;
+            font-family: var(--font-body);
+            color: var(--text);
+            background-color: var(--bg);
+            background-image: radial-gradient(120% 80% at 85% -10%, color-mix(in oklab, var(--signal) 12%, transparent), transparent 60%), radial-gradient(90% 60% at 0% 0%, color-mix(in oklab, #2bd6c0 7%, transparent), transparent 55%), linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 64px 64px, 64px 64px;
+            background-attachment: fixed;
+            -webkit-font-smoothing: antialiased;
+        }
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+        body > * { position: relative; z-index: 1; }
+        .shell { width: min(680px, 100% - 2.5rem); margin-inline: auto; padding-block: 2rem; }
+        .card {
+            background: linear-gradient(180deg, color-mix(in oklab, var(--paper) 3%, transparent), transparent 30%), var(--surface);
+            border: 1px solid var(--line);
+            border-radius: var(--r-lg);
+            box-shadow: var(--shadow-card);
+            padding: 1.5rem;
+        }
+        .card__title {
+            font-family: var(--font-mono);
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-align: center;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+        .warning-box {
+            background: color-mix(in oklab, var(--danger) 12%, var(--ink-850));
+            border: 1px solid color-mix(in oklab, var(--danger) 40%, transparent);
+            border-radius: var(--r-md);
+            padding: 0.85rem 1rem;
+            margin-bottom: 1.5rem;
+            color: var(--danger);
+            font-size: 0.85rem;
+            text-align: center;
+            line-height: 1.6;
+        }
+        .sponsor-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-radius: var(--r-md);
+            border: 1px solid var(--line);
+            background: var(--ink-850);
+            margin-bottom: 0.5rem;
+            transition: border-color .2s, background .2s;
+        }
+        .sponsor-item:last-child { margin-bottom: 0; }
+        .sponsor-item:hover {
+            border-color: var(--line-strong);
+        }
+        .sponsor-item .sponsor-logo {
+            width: 3rem;
+            height: 3rem;
+            border-radius: var(--r-sm);
+            flex-shrink: 0;
+            overflow: hidden;
+            background: var(--surface-2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: var(--text-3);
+        }
+        .sponsor-item .sponsor-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .sponsor-item .sponsor-logo i {
+            font-size: 1.4rem;
+            color: var(--text-3);
+        }
+        .sponsor-item .sponsor-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .sponsor-item .sponsor-name {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+        .sponsor-item .sponsor-btn {
+            flex-shrink: 0;
+            padding: 0.4rem 0.8rem;
+            border-radius: var(--r-sm);
+            border: 1px solid var(--accent);
+            background: transparent;
+            color: var(--accent);
+            font-family: var(--font-body);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .sponsor-item .sponsor-btn:hover {
+            background: var(--accent);
+            color: var(--accent-ink);
+        }
+        .sponsor-item .sponsor-btn i {
+            font-size: 0.75rem;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            padding: 0.6rem 1.2rem;
+            border-radius: var(--r-sm);
+            border: 1px solid transparent;
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .2s;
+            text-decoration: none;
+        }
+        .btn:active { transform: scale(.96); }
+        .btn-primary {
+            background: var(--accent);
+            color: var(--accent-ink);
+            box-shadow: var(--glow);
+            width: 100%;
+        }
+        .btn-primary:hover { filter: brightness(1.08); }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            filter: none;
+        }
+        .btn-success {
+            background: var(--success);
+            color: var(--accent-ink);
+            width: 100%;
+        }
+        .btn-success:hover { filter: brightness(1.08); }
+        .btn-success:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            filter: none;
+        }
+        .btn-ghost {
+            background: var(--surface-2);
+            border-color: var(--line);
+            color: var(--text);
+            width: 100%;
+        }
+        .btn-ghost:hover { border-color: var(--line-strong); color: var(--accent); }
+        .status-text {
+            text-align: center;
+            padding: 1.5rem 1rem;
+            font-size: 0.9rem;
+            color: var(--text-2);
+        }
+        .status-text .loading { color: var(--text-3); }
+        .status-text .success { color: var(--success); }
+        .status-text .error { color: var(--danger); }
+        .spinner {
+            display: inline-block;
+            width: 1.2rem;
+            height: 1.2rem;
+            border: 2px solid var(--line);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        .status-text .spinner {
+            vertical-align: middle;
+            margin-right: 0.5rem;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        @keyframes rise {
+            from { opacity: 0; transform: translateY(14px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .reveal { animation: rise .5s cubic-bezier(.2,.8,.2,1) both; }
+        @media (max-width: 480px) {
+            .shell { width: 100% - 1rem; padding-block: 1rem; }
+            .card { padding: 1rem; }
+            .sponsor-item { flex-wrap: wrap; }
+            .sponsor-item .sponsor-btn { width: 100%; justify-content: center; }
+            .warning-box { font-size: 0.78rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <div class="card reveal">
+            <h1 class="card__title">ПОДПИСКА НА СПОНСОРОВ</h1>
+            
+            <div class="warning-box">
+                Отписаться от спонсоров можно в понедельник следующей недели, от тех, на которых вы подписались до этого понедельника. Если вы отпишитесь раньше, ваша подписка будет приостановлена!
+            </div>
+            
+            <div id="sponsorsList">
+                <div class="status-text">
+                    <span class="loading"><span class="spinner"></span> Загрузка...</span>
+                </div>
+            </div>
+            
+            <div id="actionsContainer" class="actions">
+                <button id="checkBtn" class="btn btn-primary" onclick="checkSubscriptions()">
+                    Проверить подписки
+                </button>
+                <button id="backBtn" class="btn btn-ghost" onclick="closeApp()">
+                    <i class="fas fa-arrow-left"></i> Назад в бота
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram?.WebApp;
+        const isTelegramWebApp = !!tg;
+
+        if (isTelegramWebApp) {
+            tg.ready();
+            tg.disableClosingConfirmation();
+        }
+
+        const pathParts = window.location.pathname.split('/');
+        const token = pathParts[pathParts.length - 1];
+        const apiBase = `/sub`;
+        let isLoading = false;
+        let redirecting = false;
+        let checkInProgress = false;
+
+        function goToVpn() {
+            if (redirecting) return;
+            redirecting = true;
+            window.location.href = `/sub/${token}`;
+        }
+
+        function deduplicateSponsors(sponsors) {
+            const unique = {};
+            for (const s of sponsors) {
+                let key = s.resource_id || s.ads_id || s.link || '';
+                if (key && !unique[key]) {
+                    unique[key] = s;
+                }
+            }
+            return Object.values(unique);
+        }
+
+        async function loadSponsors() {
+            if (isLoading) return;
+            isLoading = true;
+            
+            const container = document.getElementById('sponsorsList');
+            const checkBtn = document.getElementById('checkBtn');
+            
+            try {
+                const resp = await fetch(`${apiBase}/check/${token}`);
+                const data = await resp.json();
+                
+                if (data.status === 'ok') {
+                    goToVpn();
+                    return;
+                }
+                
+                if (data.status === 'warning' && data.sponsors && data.sponsors.length > 0) {
+                    const uniqueSponsors = deduplicateSponsors(data.sponsors);
+                    renderSponsors(uniqueSponsors);
+                    checkBtn.style.display = 'block';
+                    checkBtn.disabled = false;
+                    checkBtn.textContent = 'Проверить подписки';
+                    return;
+                }
+                
+                goToVpn();
+                
+            } catch (err) {
+                console.error('Error loading sponsors:', err);
+                goToVpn();
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        function renderSponsors(sponsorsList) {
+            const container = document.getElementById('sponsorsList');
+            
+            let html = '';
+            sponsorsList.forEach((sponsor, index) => {
+                let logoUrl = sponsor.resource_logo || '';
+                let logoHtml = '';
+                
+                if (logoUrl) {
+                    const proxyUrl = `/proxy/image?url=${encodeURIComponent(logoUrl)}`;
+                    logoHtml = `<img src="${proxyUrl}" alt="${sponsor.resource_name || 'Спонсор'}" loading="lazy" onerror="this.style.display='none'">`;
+                } else {
+                    logoHtml = `<i class="fas fa-bullhorn"></i>`;
+                }
+                
+                html += `
+                    <div class="sponsor-item reveal" style="animation-delay: ${index * 0.05}s">
+                        <div class="sponsor-logo">${logoHtml}</div>
+                        <div class="sponsor-info">
+                            <div class="sponsor-name">${sponsor.resource_name || 'Спонсор'}</div>
+                        </div>
+                        <a href="${sponsor.link || '#'}" target="_blank" class="sponsor-btn">
+                            <i class="fas fa-arrow-right"></i> Подписаться
+                        </a>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        async function checkSubscriptions() {
+            if (checkInProgress) return;
+            
+            const btn = document.getElementById('checkBtn');
+            btn.disabled = true;
+            btn.textContent = 'Проверка...';
+            checkInProgress = true;
+            
+            try {
+                const resp = await fetch(`${apiBase}/confirm/${token}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await resp.json();
+                
+                if (data.success) {
+                    if (isTelegramWebApp) {
+                        tg.sendData(JSON.stringify({ action: 'subscription_confirmed' }));
+                    }
+                    goToVpn();
+                } else {
+                    if (isTelegramWebApp) {
+                        tg.showPopup({
+                            message: data.message || 'Вы подписались не на всех спонсоров! Проверьте подписки и попробуйте снова.',
+                            buttons: [{ type: 'ok' }]
+                        });
+                    } else {
+                        alert(data.message || 'Вы подписались не на всех спонсоров! Проверьте подписки и попробуйте снова.');
+                    }
+                    
+                    btn.disabled = false;
+                    btn.textContent = 'Проверить подписки';
+                    checkInProgress = false;
+                }
+            } catch (err) {
+                console.error('Error checking subscriptions:', err);
+                if (isTelegramWebApp) {
+                    tg.showPopup({
+                        message: 'Ошибка проверки подписок. Попробуйте позже.',
+                        buttons: [{ type: 'ok' }]
+                    });
+                } else {
+                    alert('Ошибка проверки подписок. Попробуйте позже.');
+                }
+                btn.disabled = false;
+                btn.textContent = 'Проверить подписки';
+                checkInProgress = false;
+            }
+        }
+
+        function closeApp() {
+            if (isTelegramWebApp) {
+                tg.close();
+            }
+            window.location.href = 'https://t.me/auranetvpnbot';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSponsors();
+        });
+    </script>
+</body>
+</html>
