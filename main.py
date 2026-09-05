@@ -24,7 +24,7 @@ from handlers.payment import PLANS, user_transactions, user_payment, user_paymen
 logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
 
-PORT = 7529
+PORT = 6192
 SUBSCRIPTION_DOMAIN = "streamnetvpn.bothost.tech"
 ADMIN_ID = 7752488661
 
