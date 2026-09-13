@@ -17,7 +17,7 @@ async def help_handler(callback: CallbackQuery):
     builder.row(
         InlineKeyboardButton(
             text="Тех. поддержка",
-            url="https://t.me/StreamNetAdmin",
+            url="https://t.me/ecronox",
             icon_custom_emoji_id="5258093637450866522"
         )
     )
