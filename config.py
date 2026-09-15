@@ -9,7 +9,7 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ID = int(os.getenv("ADMIN_ID", "7752488661"))
 
 # Web
-PORT = int(os.getenv("PORT", "1649"))
+PORT = int(os.getenv("PORT", "1843"))
 SUBSCRIPTION_DOMAIN = os.getenv("SUBSCRIPTION_DOMAIN", "streamnetvpn.bothost.tech")
 BOT_USERNAME = os.getenv("BOT_USERNAME", "streamnetvpnbot")
 
