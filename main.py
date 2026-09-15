@@ -29,7 +29,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-PORT = 1649
+PORT = 1843
 SUBSCRIPTION_DOMAIN = "streamnetvpn.bothost.tech"
 ADMIN_ID = 7752488661
 
