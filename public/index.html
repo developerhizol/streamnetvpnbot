@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>stream net — VPN нового поколения</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+    <style>
+        :root {
+            color-scheme: dark;
+            --ink-900: #0d1117;
+            --ink-850: #11161d;
+            --ink-800: #161b22;
+            --ink-700: #1d242d;
+            --ink-600: #2b333d;
+            --signal: #5a8a94;
+            --signal-dim: #487079;
+            --paper: #e6edf3;
+            --paper-dim: #9aa7b4;
+            --paper-mute: #7a8694;
+            --danger: #ff6b6b;
+            --success: #4ad08a;
+            --bg: var(--ink-900);
+            --surface: var(--ink-800);
+            --surface-2: var(--ink-700);
+            --line: color-mix(in oklab, var(--paper) 10%, transparent);
+            --line-strong: color-mix(in oklab, var(--signal) 35%, transparent);
+            --text: var(--paper);
+            --text-2: var(--paper-dim);
+            --text-3: var(--paper-mute);
+            --accent: var(--signal);
+            --accent-ink: #06181c;
+            --font-body: 'Manrope', system-ui, sans-serif;
+            --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+            --r-sm: 0.5rem;
+            --r-md: 0.875rem;
+            --r-lg: 1.25rem;
+            --shadow-card: 0 1px 0 color-mix(in oklab, var(--paper) 6%, transparent) inset, 0 20px 40px -24px rgba(0, 0, 0, 0.8);
+            --glow: 0 0 0 1px color-mix(in oklab, var(--signal) 40%, transparent), 0 0 28px -6px color-mix(in oklab, var(--signal) 55%, transparent);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100dvh;
+            font-family: var(--font-body);
+            color: var(--text);
+            background-color: var(--bg);
+            -webkit-font-smoothing: antialiased;
+            background-image:
+                radial-gradient(120% 80% at 85% -10%, color-mix(in oklab, var(--signal) 12%, transparent), transparent 60%),
+                radial-gradient(90% 60% at 0% 0%, color-mix(in oklab, #2bd6c0 7%, transparent), transparent 55%),
+                linear-gradient(var(--line) 1px, transparent 1px),
+                linear-gradient(90deg, var(--line) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 64px 64px, 64px 64px;
+            background-attachment: fixed;
+        }
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+        body > * { position: relative; z-index: 1; }
+        h1, h2, h3 { text-wrap: balance; margin: 0; }
+        p { margin: 0; }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .shell { width: min(960px, 100% - 2.5rem); margin-inline: auto; }
+        .site-header {
+            padding-block: 1.5rem 0.5rem;
+        }
+        .site-header__row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 1.05rem;
+            letter-spacing: -0.02em;
+            color: var(--text);
+        }
+        .brand__dot {
+            width: 0.6rem; height: 0.6rem;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 12px var(--accent);
+            animation: pulse 2.4s ease-in-out infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+        .header-actions { display: flex; align-items: center; gap: 0.5rem; }
+        .icon-btn {
+            inline-size: 2.75rem; block-size: 2.75rem;
+            display: inline-flex; align-items: center; justify-content: center;
+            border-radius: var(--r-sm);
+            background: var(--surface);
+            border: 1px solid var(--line);
+            color: var(--text-2);
+            cursor: pointer;
+            transition: color .2s, border-color .2s, background .2s, transform .1s;
+            text-decoration: none;
+            font-size: 1.05rem;
+        }
+        .icon-btn:hover { color: var(--accent); border-color: var(--line-strong); background: var(--surface-2); }
+        .icon-btn:active { transform: scale(.94); }
+
+        .hero {
+            padding: 3.5rem 0 2rem;
+            text-align: center;
+        }
+        .hero__title {
+            font-family: var(--font-mono);
+            font-size: clamp(2rem, 6vw, 3.5rem);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.05;
+            background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero__subtitle {
+            margin-top: 1rem;
+            font-size: 1.05rem;
+            color: var(--text-2);
+            max-width: 600px;
+            margin-inline: auto;
+            line-height: 1.6;
+        }
+        .hero__actions {
+            margin-top: 2rem;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.55rem;
+            min-block-size: 3rem;
+            font-family: var(--font-body);
+            font-size: 0.95rem; font-weight: 700;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--r-sm);
+            cursor: pointer;
+            text-decoration: none;
+            border: 1px solid transparent;
+            transition: filter .2s, transform .1s, background .2s, border-color .2s, color .2s;
+        }
+        .btn:active { transform: translateY(1px); }
+        .btn--primary {
+            background: var(--accent); color: var(--accent-ink);
+            box-shadow: var(--glow);
+        }
+        .btn--primary:hover { filter: brightness(1.08); text-decoration: none; }
+        .btn--ghost {
+            background: var(--surface-2);
+            border-color: var(--line);
+            color: var(--text);
+        }
+        .btn--ghost:hover { border-color: var(--line-strong); color: var(--accent); text-decoration: none; }
+
+        .card {
+            background: linear-gradient(180deg, color-mix(in oklab, var(--paper) 3%, transparent), transparent 30%), var(--surface);
+            border: 1px solid var(--line);
+            border-radius: var(--r-lg);
+            box-shadow: var(--shadow-card);
+            padding: 1.5rem;
+        }
+        .section-title {
+            font-family: var(--font-mono);
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            display: flex; align-items: center; gap: 0.55rem;
+            margin-bottom: 1.25rem;
+        }
+        .section-title::before {
+            content: "//";
+            color: var(--accent);
+            font-weight: 700;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .feature {
+            padding: 1.25rem;
+            border-radius: var(--r-md);
+            border: 1px solid var(--line);
+            background: color-mix(in oklab, var(--ink-850) 60%, transparent);
+            transition: border-color .25s, transform .25s, box-shadow .25s;
+        }
+        .feature:hover {
+            border-color: var(--line-strong);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px -14px var(--glow);
+        }
+        .feature__icon {
+            inline-size: 2.6rem; block-size: 2.6rem;
+            display: grid; place-items: center;
+            border-radius: var(--r-sm);
+            background: color-mix(in oklab, var(--accent) 15%, transparent);
+            color: var(--accent);
+            font-size: 1.15rem;
+            margin-bottom: 0.85rem;
+        }
+        .feature__title {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--text);
+            margin-bottom: 0.4rem;
+        }
+        .feature__desc {
+            font-size: 0.88rem;
+            color: var(--text-2);
+            line-height: 1.55;
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .step-card {
+            padding: 1.25rem;
+            border-radius: var(--r-md);
+            border: 1px solid var(--line);
+            background: color-mix(in oklab, var(--ink-850) 60%, transparent);
+            position: relative;
+        }
+        .step-card__num {
+            font-family: var(--font-mono);
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--accent);
+            line-height: 1;
+            margin-bottom: 0.75rem;
+            opacity: 0.85;
+        }
+        .step-card__title {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 0.4rem;
+        }
+        .step-card__desc {
+            font-size: 0.85rem;
+            color: var(--text-2);
+            line-height: 1.55;
+        }
+
+        .cta {
+            margin-top: 2rem;
+            padding: 2rem;
+            text-align: center;
+            border-radius: var(--r-lg);
+            border: 1px solid var(--line-strong);
+            background:
+                radial-gradient(120% 100% at 50% 0%, color-mix(in oklab, var(--signal) 18%, transparent), transparent 70%),
+                var(--surface);
+            box-shadow: var(--shadow-card), 0 0 60px -30px var(--glow);
+        }
+        .cta__title {
+            font-family: var(--font-mono);
+            font-size: clamp(1.4rem, 3.5vw, 2rem);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+        .cta__desc {
+            margin-top: 0.6rem;
+            color: var(--text-2);
+            font-size: 0.95rem;
+        }
+        .cta__btn { margin-top: 1.5rem; }
+
+        .footer {
+            margin-top: 3rem;
+            padding-block: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            font-size: 0.75rem;
+            color: var(--text-3);
+            border-top: 1px solid var(--line);
+        }
+        .footer a { color: var(--text-3); }
+        .footer a:hover { color: var(--accent); }
+        .footer-links { display: flex; gap: 1rem; flex-wrap: wrap; }
+
+        section.block { margin-top: 2.5rem; }
+
+        * { scrollbar-color: var(--ink-600) transparent; scrollbar-width: thin; }
+
+        @keyframes rise {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .reveal { animation: rise .6s cubic-bezier(.2,.8,.2,1) both; }
+        .reveal:nth-of-type(1) { animation-delay: .05s; }
+        .reveal:nth-of-type(2) { animation-delay: .15s; }
+        .reveal:nth-of-type(3) { animation-delay: .25s; }
+        .reveal:nth-of-type(4) { animation-delay: .35s; }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, ::before, ::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            .brand__dot { animation: none; }
+        }
+        @media (max-width: 768px) {
+            .features-grid, .steps { grid-template-columns: 1fr; }
+            .hero { padding: 2.5rem 0 1rem; }
+        }
+        @media (max-width: 480px) {
+            .shell { width: 100% - 1.5rem; }
+            .hero__actions { flex-direction: column; }
+            .hero__actions .btn { width: 100%; }
+            .footer { flex-direction: column; text-align: center; }
+            .footer-links { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <a href="#content" class="visually-hidden" style="position:absolute;left:-9999px;">Перейти к содержимому</a>
+
+    <header class="site-header shell">
+        <div class="site-header__row">
+            <h1 class="brand">
+                <span class="brand__dot" aria-hidden="true"></span>
+                stream net
+            </h1>
+            <div class="header-actions">
+                <a class="icon-btn" href="https://t.me/streamnetvpnbot" target="_blank" rel="noopener noreferrer" aria-label="Telegram-бот">
+                    <i class="fab fa-telegram"></i>
+                </a>
+                <a class="icon-btn" href="https://t.me/StreamNetAdmin" target="_blank" rel="noopener noreferrer" aria-label="Поддержка">
+                    <i class="fas fa-headset"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main id="content" class="shell">
+        <section class="hero reveal">
+            <h2 class="hero__title">VPN нового поколения</h2>
+            <p class="hero__subtitle">
+                Стабильный и безопасный доступ к сети через современные протоколы
+                с открытым исходным кодом. Высокая скорость, устойчивость к ограничениям,
+                простое подключение через Telegram.
+            </p>
+            <div class="hero__actions">
+                <a class="btn btn--primary" href="https://t.me/streamnetvpnbot" target="_blank" rel="noopener noreferrer">
+                    <i class="fab fa-telegram"></i>
+                    Открыть бота
+                </a>
+                <a class="btn btn--ghost" href="#features">
+                    <i class="fas fa-arrow-down"></i>
+                    Узнать больше
+                </a>
+            </div>
+        </section>
+
+        <section class="block reveal" id="features">
+            <h3 class="section-title">Почему мы</h3>
+            <div class="features-grid">
+                <div class="feature">
+                    <div class="feature__icon"><i class="fas fa-bolt"></i></div>
+                    <div class="feature__title">Высокая скорость</div>
+                    <div class="feature__desc">
+                        Современные протоколы VLESS и XTLS дают максимальную пропускную способность
+                        без потери стабильности.
+                    </div>
+                </div>
+                <div class="feature">
+                    <div class="feature__icon"><i class="fas fa-shield-halved"></i></div>
+                    <div class="feature__title">Безопасность</div>
+                    <div class="feature__desc">
+                        Шифрование трафика и отсутствие логов. Ваши данные защищены на всех этапах.
+                    </div>
+                </div>
+                <div class="feature">
+                    <div class="feature__icon"><i class="fas fa-globe"></i></div>
+                    <div class="feature__title">Доступность</div>
+                    <div class="feature__desc">
+                        Серверы работают в условиях строгих ограничений и обходят блокировки.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="block reveal">
+            <h3 class="section-title">Как подключиться</h3>
+            <div class="steps">
+                <div class="step-card">
+                    <div class="step-card__num">01</div>
+                    <div class="step-card__title">Откройте бота</div>
+                    <div class="step-card__desc">
+                        Перейдите в Telegram-бота <a href="https://t.me/streamnetvpnbot" target="_blank" rel="noopener noreferrer">@streamnetvpnbot</a>
+                        и нажмите «Старт».
+                    </div>
+                </div>
+                <div class="step-card">
+                    <div class="step-card__num">02</div>
+                    <div class="step-card__title">Получите ключ</div>
+                    <div class="step-card__desc">
+                        Скопируйте персональную ссылку подписки или откройте Mini App для настройки.
+                    </div>
+                </div>
+                <div class="step-card">
+                    <div class="step-card__num">03</div>
+                    <div class="step-card__title">Подключитесь</div>
+                    <div class="step-card__desc">
+                        Импортируйте ключ в приложение Happ / V2RayTun — и пользуйтесь интернетом без границ.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta reveal">
+            <h3 class="cta__title">Готовы начать?</h3>
+            <p class="cta__desc">
+                Подключение занимает меньше минуты. Первый доступ — бесплатно после подписки на спонсоров.
+            </p>
+            <a class="btn btn--primary cta__btn" href="https://t.me/streamnetvpnbot" target="_blank" rel="noopener noreferrer">
+                <i class="fab fa-telegram"></i>
+                Перейти в бота
+            </a>
+        </section>
+
+        <footer class="footer">
+            <span><i class="far fa-copyright"></i> 2026 stream net VPN</span>
+            <div class="footer-links">
+                <a href="https://telegra.ph/Polzovatelskoe-soglashenie-04-01-19" target="_blank" rel="noopener noreferrer">Пользовательское соглашение</a>
+                <a href="https://telegra.ph/Politika-konfidencialnosti-04-01-26" target="_blank" rel="noopener noreferrer">Политика конфиденциальности</a>
+            </div>
+        </footer>
+    </main>
+
+    <script>
+        // Плавный скролл по якорным ссылкам
+        document.querySelectorAll('a[href^="#"]').forEach(link => {
+            link.addEventListener('click', function (e) {
+                const id = this.getAttribute('href');
+                if (id.length > 1) {
+                    const target = document.querySelector(id);
+                    if (target) {
+                        e.preventDefault();
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
